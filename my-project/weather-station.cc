@@ -127,7 +127,7 @@ int main(int argc, char *argv[]) {
 
   // ~~~ MAIN LOOP ~~~
   while (!interrupt_received) {
-    usleep(5 * 1000);
+    sleep(5);
   }
   // ~~~ END ~~~
 
