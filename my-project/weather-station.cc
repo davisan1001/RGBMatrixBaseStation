@@ -28,6 +28,55 @@ static int usage(const char *progname) {
   return 1;
 }
 
+class DemoRunner {
+ protected:
+  DemoRunner(Canvas *canvas) : canvas_(canvas) {}
+  inline Canvas *canvas() { return canvas_; }
+
+ public:
+  virtual ~DemoRunner() {}
+  virtual void Run() = 0;
+
+ private:
+  Canvas *const canvas_;
+};
+
+// Simple generator that pulses through RGB and White.
+class ColorPulseGenerator : public DemoRunner {
+ public:
+  ColorPulseGenerator(RGBMatrix *m) : DemoRunner(m), matrix_(m) {
+    off_screen_canvas_ = m->CreateFrameCanvas();
+  }
+  void Run() override {
+    uint32_t continuum = 0;
+    while (!interrupt_received) {
+      usleep(5 * 1000);
+      continuum += 1;
+      continuum %= 3 * 255;
+      int r = 0, g = 0, b = 0;
+      if (continuum <= 255) {
+        int c = continuum;
+        b = 255 - c;
+        r = c;
+      } else if (continuum > 255 && continuum <= 511) {
+        int c = continuum - 256;
+        r = 255 - c;
+        g = c;
+      } else {
+        int c = continuum - 512;
+        g = 255 - c;
+        b = c;
+      }
+      off_screen_canvas_->Fill(r, g, b);
+      off_screen_canvas_ = matrix_->SwapOnVSync(off_screen_canvas_);
+    }
+  }
+
+ private:
+  RGBMatrix *const matrix_;
+  FrameCanvas *off_screen_canvas_;
+};
+
 int main(int argc, char *argv[]) {
   const char *demo_parameter = NULL;
   RGBMatrix::Options matrix_options;
@@ -45,34 +94,21 @@ int main(int argc, char *argv[]) {
     return usage(argv[0]);
   }
 
+  // Now extract any command line flags that are relevant to this program.
+  // TODO: No command line flags are relevant to this program yet...
   int opt;
-  while ((opt = getopt(argc, argv, "dD:r:P:c:p:b:m:LR:")) != -1) {
+  while ((opt = getopt(argc, argv, "")) != -1) {
     switch (opt) {
-      case 'D':
-        demo = atoi(optarg);
-        break;
-
-      case 'm':
-        scroll_ms = atoi(optarg);
-        break;
-
       default: /* '?' */
-        return usage(argv[0]);
+        // return usage(argv[0]);
+        break;
     }
-  }
-
-  if (optind < argc) {
-    demo_parameter = argv[optind];
-  }
-
-  if (demo < 0) {
-    fprintf(stderr, TERM_ERR "Expected required option -D <demo>\n" TERM_NORM);
-    return usage(argv[0]);
   }
 
   RGBMatrix *matrix = RGBMatrix::CreateFromOptions(matrix_options, runtime_opt);
   if (matrix == NULL) return 1;
 
+  // TODO: Purpose?... Debugging?
   printf("Size: %dx%d. Hardware gpio mapping: %s\n", matrix->width(),
          matrix->height(), matrix_options.hardware_mapping);
 
@@ -80,63 +116,7 @@ int main(int argc, char *argv[]) {
 
   // The DemoRunner objects are filling
   // the matrix continuously.
-  DemoRunner *demo_runner = NULL;
-  switch (demo) {
-    case 0:
-      demo_runner = new RotatingBlockGenerator(canvas);
-      break;
-
-    case 1:
-    case 2:
-      if (demo_parameter) {
-        ImageScroller *scroller =
-            new ImageScroller(matrix, demo == 1 ? 1 : -1, scroll_ms);
-        if (!scroller->LoadPPM(demo_parameter)) return 1;
-        demo_runner = scroller;
-      } else {
-        fprintf(stderr, "Demo %d Requires PPM image as parameter\n", demo);
-        return 1;
-      }
-      break;
-
-    case 3:
-      demo_runner = new SimpleSquare(canvas);
-      break;
-
-    case 4:
-      demo_runner = new ColorPulseGenerator(matrix);
-      break;
-
-    case 5:
-      demo_runner = new GrayScaleBlock(canvas);
-      break;
-
-    case 6:
-      demo_runner = new Sandpile(canvas, scroll_ms);
-      break;
-
-    case 7:
-      demo_runner = new GameLife(canvas, scroll_ms);
-      break;
-
-    case 8:
-      demo_runner = new Ant(canvas, scroll_ms);
-      break;
-
-    case 9:
-      demo_runner = new VolumeBars(canvas, scroll_ms, canvas->width() / 2);
-      break;
-
-    case 10:
-      demo_runner = new GeneticColors(canvas, scroll_ms);
-      break;
-
-    case 11:
-      demo_runner = new BrightnessPulseGenerator(matrix);
-      break;
-  }
-
-  if (demo_runner == NULL) return usage(argv[0]);
+  DemoRunner *demo_runner = new ColorPulseGenerator(matrix);
 
   // Set up an interrupt handler to be able to stop animations while they go
   // on. Each demo tests for while (!interrupt_received) {},
