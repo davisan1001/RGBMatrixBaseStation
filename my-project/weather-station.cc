@@ -54,13 +54,13 @@ void updateFrame() {
 }
 
 int main(int argc, char *argv[]) {
-  const char *demo_parameter = NULL;
   RGBMatrix::Options matrix_options;
   rgb_matrix::RuntimeOptions runtime_opt;
 
   // These are the defaults when no command-line flags are given.
   matrix_options.rows = 64;
   matrix_options.cols = 64;
+  matrix_options.pixel_mapper_config = "rotate:90";
   matrix_options.chain_length = 1;
   matrix_options.parallel = 1;
 
@@ -71,10 +71,7 @@ int main(int argc, char *argv[]) {
   }
 
   // Setup font
-  const char *bdf_font_file = "../fonts/tom-thumb-fixed_4x6.bdf";
-  int x_orig = 0;  // TODO: No need?
-  int y_orig = 0;  // TODO: No need?
-  int letter_spacing = 0;
+  const char *bdf_font_file = "../fonts/tom-thumb.bdf";
 
   if (bdf_font_file == NULL) {
     fprintf(stderr, "Unrecognized font file\n");
@@ -110,11 +107,19 @@ int main(int argc, char *argv[]) {
 
   int text_start_x = 0;
   int text_start_y = 0;
-  Color text_color(255, 255, 0);
-  char line[1024] = "Hello World!\n Time: 12:45";
+  int letter_spacing = 0;
+  Color text_color(255, 255, 255);
+  char line1[1024] = "Hello World!";
+  char line2[1024] = "Time: 12:45";
 
   DrawText(off_screen_canvas, font, text_start_x,
-           text_start_y + font.baseline(), text_color, NULL, line,
+           text_start_y + font.baseline(), text_color, NULL, line1,
+           letter_spacing);
+
+  text_start_y += font.height();
+
+  DrawText(off_screen_canvas, font, text_start_x,
+           text_start_y + font.baseline(), text_color, NULL, line2,
            letter_spacing);
 
   // off_screen_canvas->
