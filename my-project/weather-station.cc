@@ -105,6 +105,7 @@ int main(int argc, char *argv[]) {
 
   printf("Press <CTRL-C> to exit and reset LEDs\n");
 
+  // Draw text on the canvas (Temporary testing)
   int text_start_x = 0;
   int text_start_y = 0;
   int letter_spacing = 0;
@@ -122,16 +123,17 @@ int main(int argc, char *argv[]) {
            text_start_y + font.baseline(), text_color, NULL, line2,
            letter_spacing);
 
-  // off_screen_canvas->
-  off_screen_canvas = matrix->SwapOnVSync(off_screen_canvas);
-
   // ~~~ MAIN LOOP ~~~
   while (!interrupt_received) {
-    sleep(5);
+    usleep(5 * 1000);
+
+    off_screen_canvas = matrix->SwapOnVSync(off_screen_canvas);
   }
   // ~~~ END ~~~
 
+  // TODO: Make sure you're deleting everything that needs to be deleted
   delete weatherModule;
+  delete matrix;
   // delete canvas;
 
   printf("Received CTRL-C. Exiting.\n");
