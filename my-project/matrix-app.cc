@@ -39,8 +39,7 @@ class MatrixModule {
   MatrixModule() {}
   MatrixModule(rgb_matrix::RGBMatrix *m) {
     // Setup font
-    // TODO: Change this file to tom-thumb_fixed_4x6.bdf ??
-    const char *bdf_font_file = "../fonts/tom-thumb.bdf";
+    const char *bdf_font_file = "../fonts/tom-thumb_fixed_4x6.bdf";
 
     if (bdf_font_file == NULL) {
       std::string errMsg = std::string("Unrecognized font file\n");
@@ -81,42 +80,43 @@ class ClockModule : public MatrixModule {
   rgb_matrix::Color text_color;
   rgb_matrix::Color clock_color;
 
-  int clock_text_canvas_offset_x = 23;
-  int clock_text_canvas_offset_y = 29;
+  int clock_text_canvas_offset_x = 22;
+  int clock_text_canvas_offset_y = 28;
   int image_width = MatrixModule::matrix->width();
   int image_height = MatrixModule::matrix->height();
   // Warning: grabbing matrix->width() and height() might result in tearing
 
   int hour_hand_circle_radius = 24;
   int minute_hand_circle_radius = 18;
-  int second_hand_circle_radius = 14;
-  int circle_center_x = 32;  // TODO: Set to half of image_width
-  int circle_center_y = 32;
+  int second_hand_circle_radius = 17;
+  int circle_center_x = (image_width - 1) / 2;
+  int circle_center_y = (image_height - 1) / 2;
 
   void DrawClock(struct tm *time) {
     /* ~~ Draw ticks around the perimeter of the screen ~~ */
     rgb_matrix::SetImage(off_screen_canvas, 0, 0,
                          matrix_images::analog_clock_base,
-                         sizeof(matrix_images::analog_clock_base), image_width,
-                         image_height, false);
+                         matrix_images::analog_clock_base_size,
+                         matrix_images::analog_clock_base_width,
+                         matrix_images::analog_clock_base_height, false);
 
     // Get fraction of hour
-    double hour_fraction = (time->tm_hour % 12) / 12;
+    double hour_fraction = (double)(time->tm_hour % 12) / 12;
 
     // Get fraction of minute
-    double minute_fraction = time->tm_min / 60;
+    double minute_fraction = (double)time->tm_min / 60;
 
     // Get fraction of second
-    double second_fraction = time->tm_sec / 60;
+    double second_fraction = (double)time->tm_sec / 60;
 
-    /* ~~ Draw hour line ~~ */
+    // ~~ Draw hour line ~~ //
     // Calculate point on circle circumference
     int hour_end_x =
         circle_center_x + (hour_hand_circle_radius *
-                           cos(hour_fraction - (0.5 * std::numbers::pi)));
+                           cos(hour_fraction + (0.5 * std::numbers::pi)));
     int hour_end_y =
         circle_center_y + (hour_hand_circle_radius *
-                           sin(hour_fraction + (0.5 * std::numbers::pi)));
+                           sin(hour_fraction - (0.5 * std::numbers::pi)));
 
     // Need to draw 4 lines because the middle is represented as a 2 by 2 pixel
     // block
@@ -128,14 +128,14 @@ class ClockModule : public MatrixModule {
       }
     }
 
-    /* ~~ Draw minute line ~~ */
+    // ~~ Draw minute line ~~ //
     // Calculate point on circle circumference
     int minute_end_x =
         circle_center_x + (minute_hand_circle_radius *
-                           cos(minute_fraction - (0.5 * std::numbers::pi)));
+                           cos(minute_fraction + (0.5 * std::numbers::pi)));
     int minute_end_y =
         circle_center_y + (minute_hand_circle_radius *
-                           sin(minute_fraction + (0.5 * std::numbers::pi)));
+                           sin(minute_fraction - (0.5 * std::numbers::pi)));
 
     // Need to draw 4 lines because the middle is represented as a 2 by 2 pixel
     // block
@@ -147,32 +147,34 @@ class ClockModule : public MatrixModule {
       }
     }
 
-    /* ~~ Draw second line ~~ */
+    // ~~ Draw second line ~~ //
     // Calculate point on circle circumference
     int second_end_x =
         circle_center_x + (second_hand_circle_radius *
-                           cos(second_fraction - (0.5 * std::numbers::pi)));
+                           cos(second_fraction + (0.5 * std::numbers::pi)));
     int second_end_y =
         circle_center_y + (second_hand_circle_radius *
-                           sin(second_fraction + (0.5 * std::numbers::pi)));
+                           sin(second_fraction - (0.5 * std::numbers::pi)));
 
     // Need only draw one line because this is the second hand.
     rgb_matrix::DrawLine(off_screen_canvas, circle_center_x, circle_center_y,
                          second_end_x, second_end_y, clock_color);
 
-    /* ~~ Erase digital clock bounding box ~~ */
+    // ~~ Erase digital clock bounding box ~~ //
     // (set all pixel values to black) in the square where the time will go
     rgb_matrix::SetImage(off_screen_canvas, clock_text_canvas_offset_x,
                          clock_text_canvas_offset_y,
                          matrix_images::digital_clock_bbox_erase,
-                         sizeof(matrix_images::digital_clock_bbox_erase),
-                         image_width, image_height, false);
+                         matrix_images::digital_clock_bbox_erase_size,
+                         matrix_images::digital_clock_bbox_erase_width,
+                         matrix_images::digital_clock_bbox_erase_height, false);
 
-    /* ~~ Draw text in the center of the screen */
+    // ~~ Draw text in the center of the screen //
     std::string time_str =
         std::to_string(time->tm_hour) + ":" + std::to_string(time->tm_min);
-    rgb_matrix::DrawText(off_screen_canvas, font, clock_text_canvas_offset_x,
-                         clock_text_canvas_offset_y + font.baseline(),
+    rgb_matrix::DrawText(off_screen_canvas, font,
+                         clock_text_canvas_offset_x + 1,
+                         clock_text_canvas_offset_y + 1 + font.baseline(),
                          text_color, NULL, time_str.c_str(), letter_spacing);
   }
 
@@ -212,6 +214,11 @@ class TextTestModule : public MatrixModule {
   rgb_matrix::Color text_color;
   std::string displayText;
 
+  void ResetTextStartValues() {
+    text_start_x = 0;
+    text_start_y = 0;
+  }
+
  public:
   TextTestModule(rgb_matrix::RGBMatrix *m) : MatrixModule(m) {
     // Set text color default to white
@@ -237,6 +244,8 @@ class TextTestModule : public MatrixModule {
 
       text_start_y += font.height();
     }
+
+    ResetTextStartValues();
 
     return off_screen_canvas;
   }
@@ -280,6 +289,7 @@ int main(int argc, char *argv[]) {
   // Initialize the MatrixModule objects
   // WeatherModule *weatherModule = new WeatherStationModule();
   TextTestModule *textTestModule = new TextTestModule(matrix);
+  ClockModule *clockModule = new ClockModule(matrix);
 
   // Set up an interrupt handler to be able to stop animations while they go
   // on. Each demo tests for while (!interrupt_received) {},
@@ -291,9 +301,12 @@ int main(int argc, char *argv[]) {
 
   // ~~~ MAIN LOOP ~~~ //
   while (!interrupt_received) {
-    usleep(5 * 1000);
+    usleep(1 * 1000000);  // Sleep for 1 second
 
-    off_screen_canvas = textTestModule->UpdateCanvas();
+    // TODO: Weird flickering occurs on update. Not sure why...
+
+    // off_screen_canvas = textTestModule->UpdateCanvas();
+    off_screen_canvas = clockModule->UpdateCanvas();
 
     off_screen_canvas = matrix->SwapOnVSync(off_screen_canvas);
   }
@@ -302,6 +315,7 @@ int main(int argc, char *argv[]) {
   // TODO: Make sure you're deleting everything that needs to be deleted
   // delete weatherModule;
   delete textTestModule;
+  delete clockModule;
   delete matrix;
 
   printf("Received CTRL-C. Exiting.\n");
