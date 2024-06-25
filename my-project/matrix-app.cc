@@ -80,6 +80,11 @@ void updateFrame() {
   // Nothing for now...
 }
 
+// TODO:  Maybe I should have this initialize a base matrix-app class (or maybe
+//        the MatrixModule class) that runs the matrix instead of a loop in this
+//        main function. Maybe the loop should exist in the Run function of the
+//        class?? Nevermind, maybe the loop should just be here in the main
+//        function loop.
 int main(int argc, char *argv[]) {
   RGBMatrix::Options matrix_options;
   rgb_matrix::RuntimeOptions runtime_opt;
@@ -122,7 +127,8 @@ int main(int argc, char *argv[]) {
 
   // The MatrixModule objects are filling the matrix continuously.
   // MatrixModule *weatherModule = new WeatherStationModule();
-  MatrixModule *TextTestModule = new TextTestModule(off_screen_canvas);
+  MatrixModule *TextTestModule =
+      new TextTestModule(off_screen_canvas);  // TODO: Why is this an error?
 
   // Set up an interrupt handler to be able to stop animations while they go
   // on. Each demo tests for while (!interrupt_received) {},
