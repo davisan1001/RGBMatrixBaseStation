@@ -37,6 +37,9 @@ class MatrixModule {
 
  private:
   // TODO: No private members yet
+  // TODO: Add all variables that need to be used by all modules here.
+  // TODO: I think the font should be a private static member of this class
+  //       so that all child classes have access to it.
 };
 
 // Simple generator that pulses through RGB and White.
@@ -47,6 +50,30 @@ class WeatherStationModule : public MatrixModule {
   }
 
  private:
+};
+
+// Simple analog/digital clock
+class ClockModule : public MatrixModule {
+ public:
+  ClockModule() : MatrixModule() {
+    // Do nothing for now
+  }
+
+ private:
+};
+
+// Text displaying module for testing purposes
+class TextTestModule : public MatrixModule {
+ public:
+  TextTestModule(RGBMatrix *m) : MatrixModule() {
+    off_screen_canvas = m->CreateFrameCanvas();
+    // Do nothing for now
+  }
+
+  FrameCanvas UpdateCanvas() {}
+
+ private:
+  FrameCanvas *off_screen_canvas;
 };
 
 void updateFrame() {
@@ -64,13 +91,13 @@ int main(int argc, char *argv[]) {
   matrix_options.chain_length = 1;
   matrix_options.parallel = 1;
 
-  // First things first: extract the command line flags that contain
-  // relevant matrix options.
+  // First things first:
+  // extract the command line flags that contain relevant matrix options.
   if (!ParseOptionsFromFlags(&argc, &argv, &matrix_options, &runtime_opt)) {
     return usage(argv[0]);
   }
 
-  // Setup font
+  // Setup font // TODO: Change this file to tom-thumb_fixed_4x6.bdf ??
   const char *bdf_font_file = "../fonts/tom-thumb.bdf";
 
   if (bdf_font_file == NULL) {
@@ -93,9 +120,9 @@ int main(int argc, char *argv[]) {
 
   FrameCanvas *off_screen_canvas = matrix->CreateFrameCanvas();
 
-  // The MatrixModule objects are filling
-  // the matrix continuously.
-  MatrixModule *weatherModule = new WeatherStationModule();
+  // The MatrixModule objects are filling the matrix continuously.
+  // MatrixModule *weatherModule = new WeatherStationModule();
+  MatrixModule *TextTestModule = new TextTestModule(off_screen_canvas);
 
   // Set up an interrupt handler to be able to stop animations while they go
   // on. Each demo tests for while (!interrupt_received) {},
@@ -105,6 +132,7 @@ int main(int argc, char *argv[]) {
 
   printf("Press <CTRL-C> to exit and reset LEDs\n");
 
+  // TODO: Move this into the class
   // Draw text on the canvas (Temporary testing)
   int text_start_x = 0;
   int text_start_y = 0;
@@ -132,7 +160,8 @@ int main(int argc, char *argv[]) {
   // ~~~ END ~~~
 
   // TODO: Make sure you're deleting everything that needs to be deleted
-  delete weatherModule;
+  // delete weatherModule;
+  delete TextTestModule;
   delete matrix;
   // delete canvas;
 
