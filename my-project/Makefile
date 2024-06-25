@@ -1,9 +1,9 @@
 CFLAGS = -Wall -O3 -g -Wextra -Wno-unused-parameter
 CXXFLAGS = $(CFLAGS)
 
-SOURCES = weather-station.c
+SOURCES = matrix-app.c
 OBJECTS = $(SOURCES:.c=.o)
-TARGET = weather-station
+TARGET = matrix-app
 
 # Where our library resides. You mostly only need to change the
 # RGB_LIB_DISTRIBUTION, this is where the library is checked out.
