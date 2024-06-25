@@ -1,45 +1,68 @@
+// TODO:  I'm not sure how my program will support animations like
+//        sliding where potentially 2 MatrixModules will be displayed
+//        simultaneously for a few seconds as one slides to replace the first...
+//        Doing this may require a redesign...
 #include <assert.h>
 #include <getopt.h>
 #include <limits.h>
 #include <math.h>
 #include <signal.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
 #include <algorithm>
+#include <iostream>  // Need (Used for debugging)
+// #include <chrono>     // Need [for clock]
+#include <cmath>  // Need [for angle calculations]
+#include <ctime>  // Need [for clock]
+#include <numbers>
+#include <sstream>    // Need [for string manipulation]
+#include <stdexcept>  // Need [for throwing exceptions]
+#include <string>     // Need [for strings]
 
 #include "graphics.h"
 #include "led-matrix.h"
+#include "matrix-images.hpp"  // Need [contains byte array images]
 #include "pixel-mapper.h"
-
-using namespace rgb_matrix;
 
 volatile bool interrupt_received = false;
 static void InterruptHandler(int signo) { interrupt_received = true; }
 
-static int usage(const char *progname) {
-  fprintf(stderr, "usage: %s <options>\n", progname);
-  fprintf(stderr, "Options:\n");
-  fprintf(stderr, "\t<No Options Set Yet>              : N/A\n");
-
-  rgb_matrix::PrintMatrixFlags(stderr);
-  return 1;
-}
-
+// ~~~ BEGIN CLASS DEFINITIONS ~~~ //
 class MatrixModule {
  protected:
+  rgb_matrix::RGBMatrix *matrix;
+  rgb_matrix::FrameCanvas *off_screen_canvas;
+
+  rgb_matrix::Font font;
+
   MatrixModule() {}
+  MatrixModule(rgb_matrix::RGBMatrix *m) {
+    // Setup font
+    // TODO: Change this file to tom-thumb_fixed_4x6.bdf ??
+    const char *bdf_font_file = "../fonts/tom-thumb.bdf";
+
+    if (bdf_font_file == NULL) {
+      std::string errMsg = std::string("Unrecognized font file\n");
+      std::cerr << errMsg.c_str();
+      throw std::invalid_argument(errMsg);
+    }
+
+    // Load font. This needs to be a filename with a bdf bitmap font.
+    if (!font.LoadFont(bdf_font_file)) {
+      std::string errMsg =
+          std::string("Couldn't load font \'") + bdf_font_file + "\'\n";
+      std::cerr << errMsg.c_str();
+      throw std::invalid_argument(errMsg);
+    }
+
+    matrix = m;
+
+    off_screen_canvas = m->CreateFrameCanvas();
+  }
 
  public:
   virtual ~MatrixModule() {}
-
- private:
-  // TODO: No private members yet
-  // TODO: Add all variables that need to be used by all modules here.
-  // TODO: I think the font should be a private static member of this class
-  //       so that all child classes have access to it.
 };
 
 // Simple generator that pulses through RGB and White.
@@ -54,38 +77,184 @@ class WeatherStationModule : public MatrixModule {
 
 // Simple analog/digital clock
 class ClockModule : public MatrixModule {
- public:
-  ClockModule() : MatrixModule() {
-    // Do nothing for now
+  int letter_spacing = 0;
+  rgb_matrix::Color text_color;
+  rgb_matrix::Color clock_color;
+
+  int clock_text_canvas_offset_x = 23;
+  int clock_text_canvas_offset_y = 29;
+  int image_width = MatrixModule::matrix->width();
+  int image_height = MatrixModule::matrix->height();
+  // Warning: grabbing matrix->width() and height() might result in tearing
+
+  int hour_hand_circle_radius = 24;
+  int minute_hand_circle_radius = 18;
+  int second_hand_circle_radius = 14;
+  int circle_center_x = 32;  // TODO: Set to half of image_width
+  int circle_center_y = 32;
+
+  void DrawClock(struct tm *time) {
+    /* ~~ Draw ticks around the perimeter of the screen ~~ */
+    rgb_matrix::SetImage(off_screen_canvas, 0, 0,
+                         matrix_images::analog_clock_base,
+                         sizeof(matrix_images::analog_clock_base), image_width,
+                         image_height, false);
+
+    // Get fraction of hour
+    double hour_fraction = (time->tm_hour % 12) / 12;
+
+    // Get fraction of minute
+    double minute_fraction = time->tm_min / 60;
+
+    // Get fraction of second
+    double second_fraction = time->tm_sec / 60;
+
+    /* ~~ Draw hour line ~~ */
+    // Calculate point on circle circumference
+    int hour_end_x =
+        circle_center_x + (hour_hand_circle_radius *
+                           cos(hour_fraction - (0.5 * std::numbers::pi)));
+    int hour_end_y =
+        circle_center_y + (hour_hand_circle_radius *
+                           sin(hour_fraction + (0.5 * std::numbers::pi)));
+
+    // Need to draw 4 lines because the middle is represented as a 2 by 2 pixel
+    // block
+    for (int i = 0; i < 2; i++) {
+      for (int j = 0; j < 2; j++) {
+        rgb_matrix::DrawLine(off_screen_canvas, circle_center_x + i,
+                             circle_center_y + j, hour_end_x + i,
+                             hour_end_y + j, clock_color);
+      }
+    }
+
+    /* ~~ Draw minute line ~~ */
+    // Calculate point on circle circumference
+    int minute_end_x =
+        circle_center_x + (minute_hand_circle_radius *
+                           cos(minute_fraction - (0.5 * std::numbers::pi)));
+    int minute_end_y =
+        circle_center_y + (minute_hand_circle_radius *
+                           sin(minute_fraction + (0.5 * std::numbers::pi)));
+
+    // Need to draw 4 lines because the middle is represented as a 2 by 2 pixel
+    // block
+    for (int i = 0; i < 2; i++) {
+      for (int j = 0; j < 2; j++) {
+        rgb_matrix::DrawLine(off_screen_canvas, circle_center_x + i,
+                             circle_center_y + j, minute_end_x + i,
+                             minute_end_y + j, clock_color);
+      }
+    }
+
+    /* ~~ Draw second line ~~ */
+    // Calculate point on circle circumference
+    int second_end_x =
+        circle_center_x + (second_hand_circle_radius *
+                           cos(second_fraction - (0.5 * std::numbers::pi)));
+    int second_end_y =
+        circle_center_y + (second_hand_circle_radius *
+                           sin(second_fraction + (0.5 * std::numbers::pi)));
+
+    // Need only draw one line because this is the second hand.
+    rgb_matrix::DrawLine(off_screen_canvas, circle_center_x, circle_center_y,
+                         second_end_x, second_end_y, clock_color);
+
+    /* ~~ Erase digital clock bounding box ~~ */
+    // (set all pixel values to black) in the square where the time will go
+    rgb_matrix::SetImage(off_screen_canvas, clock_text_canvas_offset_x,
+                         clock_text_canvas_offset_y,
+                         matrix_images::digital_clock_bbox_erase,
+                         sizeof(matrix_images::digital_clock_bbox_erase),
+                         image_width, image_height, false);
+
+    /* ~~ Draw text in the center of the screen */
+    std::string time_str =
+        std::to_string(time->tm_hour) + ":" + std::to_string(time->tm_min);
+    rgb_matrix::DrawText(off_screen_canvas, font, clock_text_canvas_offset_x,
+                         clock_text_canvas_offset_y + font.baseline(),
+                         text_color, NULL, time_str.c_str(), letter_spacing);
   }
 
- private:
+ public:
+  ClockModule(rgb_matrix::RGBMatrix *m) : MatrixModule(m) {
+    // Set text color default to white
+    text_color = rgb_matrix::Color(255, 255, 255);
+
+    // Set clock color default to white
+    clock_color = rgb_matrix::Color(255, 255, 255);
+  }
+
+  rgb_matrix::FrameCanvas *UpdateCanvas() {
+    // current date and time on the current system
+    time_t now = time(0);
+
+    // convert now to local time
+    struct tm *local_time = localtime(&now);
+
+    // TODO: draw the analog clock with the digital clock in the center.
+    DrawClock(local_time);
+
+    // FOR DEBUGGING PURPOSES
+    // convert local_time to string form
+    char *date_time = asctime(local_time);
+    std::cout << "The current date and time is: " << date_time << std::endl;
+
+    return off_screen_canvas;
+  }
 };
 
 // Text displaying module for testing purposes
 class TextTestModule : public MatrixModule {
+  int text_start_x = 0;
+  int text_start_y = 0;
+  int letter_spacing = 0;
+  rgb_matrix::Color text_color;
+  std::string displayText;
+
  public:
-  TextTestModule(RGBMatrix *m) : MatrixModule() {
-    off_screen_canvas = m->CreateFrameCanvas();
-    // Do nothing for now
+  TextTestModule(rgb_matrix::RGBMatrix *m) : MatrixModule(m) {
+    // Set text color default to white
+    text_color = rgb_matrix::Color(255, 255, 255);
+
+    // Set default text
+    displayText = "Hello World!\nTime: 12:45";
   }
 
-  FrameCanvas UpdateCanvas() {}
+  void setText(std::string text) { displayText = text; }
 
- private:
-  FrameCanvas *off_screen_canvas;
+  void setColor(uint8_t rr, uint8_t gg, uint8_t bb) {
+    text_color = rgb_matrix::Color(rr, gg, bb);
+  }
+
+  rgb_matrix::FrameCanvas *UpdateCanvas() {
+    std::stringstream streamText(displayText);
+    std::string line;
+    while (std::getline(streamText, line)) {
+      rgb_matrix::DrawText(off_screen_canvas, font, text_start_x,
+                           text_start_y + font.baseline(), text_color, NULL,
+                           line.c_str(), letter_spacing);
+
+      text_start_y += font.height();
+    }
+
+    return off_screen_canvas;
+  }
 };
 
-void updateFrame() {
-  // Nothing for now...
+// ~~~ BEGIN FUNCTION DEFINITIONS ~~~ //
+static int usage(const char *progname) {
+  fprintf(stderr, "usage: %s <options>\n", progname);
+  fprintf(stderr, "Options:\n");
+  fprintf(stderr, "\t<No Options Set Yet>              : N/A\n");
+
+  rgb_matrix::PrintMatrixFlags(stderr);
+  return 1;
 }
 
-// TODO:  Maybe I should have this initialize a base matrix-app class (or maybe
-//        the MatrixModule class) that runs the matrix instead of a loop in this
-//        main function. Maybe the loop should exist in the Run function of the
-//        class?? Nevermind, maybe the loop should just be here in the main
-//        function loop.
 int main(int argc, char *argv[]) {
+  using namespace rgb_matrix;
+
   RGBMatrix::Options matrix_options;
   rgb_matrix::RuntimeOptions runtime_opt;
 
@@ -102,33 +271,15 @@ int main(int argc, char *argv[]) {
     return usage(argv[0]);
   }
 
-  // Setup font // TODO: Change this file to tom-thumb_fixed_4x6.bdf ??
-  const char *bdf_font_file = "../fonts/tom-thumb.bdf";
-
-  if (bdf_font_file == NULL) {
-    fprintf(stderr, "Unrecognized font file\n");
-    return 1;
-  }
-
-  /*
-   * Load font. This needs to be a filename with a bdf bitmap font.
-   */
-  rgb_matrix::Font font;
-  if (!font.LoadFont(bdf_font_file)) {
-    fprintf(stderr, "Couldn't load font '%s'\n", bdf_font_file);
-    return 1;
-  }
-
   // Initialize RGBMatrix
   RGBMatrix *matrix = RGBMatrix::CreateFromOptions(matrix_options, runtime_opt);
   if (matrix == NULL) return 1;
 
   FrameCanvas *off_screen_canvas = matrix->CreateFrameCanvas();
 
-  // The MatrixModule objects are filling the matrix continuously.
-  // MatrixModule *weatherModule = new WeatherStationModule();
-  MatrixModule *TextTestModule =
-      new TextTestModule(off_screen_canvas);  // TODO: Why is this an error?
+  // Initialize the MatrixModule objects
+  // WeatherModule *weatherModule = new WeatherStationModule();
+  TextTestModule *textTestModule = new TextTestModule(matrix);
 
   // Set up an interrupt handler to be able to stop animations while they go
   // on. Each demo tests for while (!interrupt_received) {},
@@ -138,38 +289,20 @@ int main(int argc, char *argv[]) {
 
   printf("Press <CTRL-C> to exit and reset LEDs\n");
 
-  // TODO: Move this into the class
-  // Draw text on the canvas (Temporary testing)
-  int text_start_x = 0;
-  int text_start_y = 0;
-  int letter_spacing = 0;
-  Color text_color(255, 255, 255);
-  char line1[1024] = "Hello World!";
-  char line2[1024] = "Time: 12:45";
-
-  DrawText(off_screen_canvas, font, text_start_x,
-           text_start_y + font.baseline(), text_color, NULL, line1,
-           letter_spacing);
-
-  text_start_y += font.height();
-
-  DrawText(off_screen_canvas, font, text_start_x,
-           text_start_y + font.baseline(), text_color, NULL, line2,
-           letter_spacing);
-
-  // ~~~ MAIN LOOP ~~~
+  // ~~~ MAIN LOOP ~~~ //
   while (!interrupt_received) {
     usleep(5 * 1000);
 
+    off_screen_canvas = textTestModule->UpdateCanvas();
+
     off_screen_canvas = matrix->SwapOnVSync(off_screen_canvas);
   }
-  // ~~~ END ~~~
+  // ~~~ END ~~~ //
 
   // TODO: Make sure you're deleting everything that needs to be deleted
   // delete weatherModule;
-  delete TextTestModule;
+  delete textTestModule;
   delete matrix;
-  // delete canvas;
 
   printf("Received CTRL-C. Exiting.\n");
   return 0;

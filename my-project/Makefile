@@ -1,4 +1,4 @@
-CFLAGS = -Wall -O3 -g -Wextra -Wno-unused-parameter
+CFLAGS = -Wall -O3 -g -Wextra -Wno-unused-parameter -std=c++20
 CXXFLAGS = $(CFLAGS)
 
 SOURCES = matrix-app.c
