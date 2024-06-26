@@ -1,6 +1,6 @@
 #include <stdint.h>
 namespace matrix_images {
-const int digital_clock_bbox_erase_width = 19;
+const int digital_clock_bbox_erase_width = 21;
 const int digital_clock_bbox_erase_height = 7;
 const size_t digital_clock_bbox_erase_size =
     3 * digital_clock_bbox_erase_width * digital_clock_bbox_erase_height;
@@ -20,7 +20,9 @@ const uint8_t digital_clock_bbox_erase[digital_clock_bbox_erase_size] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 const int analog_clock_base_width = 64;
 const int analog_clock_base_height = 64;

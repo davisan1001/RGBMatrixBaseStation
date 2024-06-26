@@ -40,6 +40,7 @@ class MatrixModule {
   MatrixModule(rgb_matrix::RGBMatrix *m) {
     // Setup font
     const char *bdf_font_file = "../fonts/tom-thumb_fixed_4x6.bdf";
+    // const char *bdf_font_file = "../fonts/tom-thumb.bdf";
 
     if (bdf_font_file == NULL) {
       std::string errMsg = std::string("Unrecognized font file\n");
@@ -80,7 +81,7 @@ class ClockModule : public MatrixModule {
   rgb_matrix::Color text_color;
   rgb_matrix::Color clock_color;
 
-  int clock_text_canvas_offset_x = 22;
+  int clock_text_canvas_offset_x = 21;
   int clock_text_canvas_offset_y = 28;
   int image_width = MatrixModule::matrix->width();
   int image_height = MatrixModule::matrix->height();
@@ -88,7 +89,7 @@ class ClockModule : public MatrixModule {
 
   int hour_hand_circle_radius = 24;
   int minute_hand_circle_radius = 18;
-  int second_hand_circle_radius = 17;
+  int second_hand_circle_radius = 16;
   int circle_center_x = (image_width - 1) / 2;
   int circle_center_y = (image_height - 1) / 2;
 
@@ -102,21 +103,26 @@ class ClockModule : public MatrixModule {
 
     // Get fraction of hour
     double hour_fraction = (double)(time->tm_hour % 12) / 12;
+    hour_fraction = 0 - hour_fraction;
 
     // Get fraction of minute
     double minute_fraction = (double)time->tm_min / 60;
+    minute_fraction = 0 - minute_fraction;
 
     // Get fraction of second
     double second_fraction = (double)time->tm_sec / 60;
+    second_fraction = 0 - second_fraction;
 
     // ~~ Draw hour line ~~ //
     // Calculate point on circle circumference
     int hour_end_x =
-        circle_center_x + (hour_hand_circle_radius *
-                           cos(hour_fraction + (0.5 * std::numbers::pi)));
+        circle_center_x +
+        (hour_hand_circle_radius * cos(hour_fraction * (2 * std::numbers::pi) +
+                                       (0.5 * std::numbers::pi)));
     int hour_end_y =
-        circle_center_y + (hour_hand_circle_radius *
-                           sin(hour_fraction - (0.5 * std::numbers::pi)));
+        circle_center_y +
+        (hour_hand_circle_radius * sin(hour_fraction * (2 * std::numbers::pi) -
+                                       (0.5 * std::numbers::pi)));
 
     // Need to draw 4 lines because the middle is represented as a 2 by 2 pixel
     // block
@@ -132,10 +138,12 @@ class ClockModule : public MatrixModule {
     // Calculate point on circle circumference
     int minute_end_x =
         circle_center_x + (minute_hand_circle_radius *
-                           cos(minute_fraction + (0.5 * std::numbers::pi)));
+                           cos(minute_fraction * (2 * std::numbers::pi) +
+                               (0.5 * std::numbers::pi)));
     int minute_end_y =
         circle_center_y + (minute_hand_circle_radius *
-                           sin(minute_fraction - (0.5 * std::numbers::pi)));
+                           sin(minute_fraction * (2 * std::numbers::pi) -
+                               (0.5 * std::numbers::pi)));
 
     // Need to draw 4 lines because the middle is represented as a 2 by 2 pixel
     // block
@@ -151,10 +159,12 @@ class ClockModule : public MatrixModule {
     // Calculate point on circle circumference
     int second_end_x =
         circle_center_x + (second_hand_circle_radius *
-                           cos(second_fraction + (0.5 * std::numbers::pi)));
+                           cos(second_fraction * (2 * std::numbers::pi) +
+                               (0.5 * std::numbers::pi)));
     int second_end_y =
         circle_center_y + (second_hand_circle_radius *
-                           sin(second_fraction - (0.5 * std::numbers::pi)));
+                           sin(second_fraction * (2 * std::numbers::pi) -
+                               (0.5 * std::numbers::pi)));
 
     // Need only draw one line because this is the second hand.
     rgb_matrix::DrawLine(off_screen_canvas, circle_center_x, circle_center_y,
@@ -170,8 +180,16 @@ class ClockModule : public MatrixModule {
                          matrix_images::digital_clock_bbox_erase_height, false);
 
     // ~~ Draw text in the center of the screen //
-    std::string time_str =
-        std::to_string(time->tm_hour) + ":" + std::to_string(time->tm_min);
+    std::string hours = std::to_string(time->tm_hour);
+    std::string minutes = std::to_string(time->tm_min);
+    if (time->tm_hour < 10) {
+      hours = "0" + std::to_string(time->tm_hour);
+    }
+    if (time->tm_min < 10) {
+      minutes = "0" + std::to_string(time->tm_min);
+    }
+
+    std::string time_str = hours + ":" + minutes;
     rgb_matrix::DrawText(off_screen_canvas, font,
                          clock_text_canvas_offset_x + 1,
                          clock_text_canvas_offset_y + 1 + font.baseline(),
