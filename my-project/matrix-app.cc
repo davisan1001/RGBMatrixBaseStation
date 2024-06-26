@@ -81,7 +81,7 @@ class ClockModule : public MatrixModule {
   rgb_matrix::Color text_color;
   rgb_matrix::Color clock_color;
 
-  int clock_text_canvas_offset_x = 22;
+  int clock_text_canvas_offset_x = 22;  // TODO: Consider moving this over by -1
   int clock_text_canvas_offset_y = 28;
   int image_width = MatrixModule::matrix->width();
   int image_height = MatrixModule::matrix->height();
