@@ -215,11 +215,6 @@ class ClockModule : public MatrixModule {
     // TODO: draw the analog clock with the digital clock in the center.
     DrawClock(local_time);
 
-    // FOR DEBUGGING PURPOSES
-    // convert local_time to string form
-    char *date_time = asctime(local_time);
-    std::cout << "The current date and time is: " << date_time << std::endl;
-
     return off_screen_canvas;
   }
 };
