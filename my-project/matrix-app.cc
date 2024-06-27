@@ -22,7 +22,8 @@
 
 #include "graphics.h"
 #include "led-matrix.h"
-#include "matrix-images.hpp"  // Need [contains byte array images]
+#include "matrix-clock-module-images.hpp"  // Need [contains byte array images]
+#include "matrix-weather-module-images.hpp"  // Need [contains byte array images]
 #include "pixel-mapper.h"
 
 volatile bool interrupt_received = false;
