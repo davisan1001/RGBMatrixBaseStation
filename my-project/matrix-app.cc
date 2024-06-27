@@ -333,7 +333,6 @@ int main(int argc, char *argv[]) {
 
   // Initialize the MatrixModule objects
   // WeatherModule *weatherModule = new WeatherStationModule();
-  TextTestModule *textTestModule = new TextTestModule(matrix);
   ClockModule *clockModule = new ClockModule(matrix);
 
   // Set up an interrupt handler to be able to stop animations while they go
@@ -355,7 +354,6 @@ int main(int argc, char *argv[]) {
 
   // TODO: Make sure you're deleting everything that needs to be deleted
   // delete weatherModule;
-  delete textTestModule;
   delete clockModule;
   delete matrix;
 
