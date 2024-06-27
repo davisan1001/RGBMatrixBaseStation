@@ -1,5 +1,9 @@
 #include <stdint.h>
+
+#include <cstddef>
+
 namespace matrix_images {
+
 const int digital_clock_bbox_erase_width = 21;
 const int digital_clock_bbox_erase_height = 7;
 const size_t digital_clock_bbox_erase_size =
