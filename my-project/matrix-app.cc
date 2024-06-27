@@ -88,9 +88,23 @@ class WeatherStationModule : public MatrixModule {
   rgb_matrix::Color temp_predicted_low_color;
   rgb_matrix::Color temp_predicted_high_color;
 
-  rgb_matrix::Font date_text_font;
-
   struct tm *local_datetime;
+
+  void DrawSeperatorLines() {
+    // TODO: Implement this
+  }
+
+  void DrawCurrentDateTime() {
+    // TODO: Implement this
+  }
+
+  void DrawCurrentDayWeatherData() {
+    // TODO: Implement this
+  }
+
+  void DrawPredictedDailyForecastData() {
+    // TODO: Implement this
+  }
 
  public:
   WeatherStationModule(rgb_matrix::RGBMatrix *m) : MatrixModule(m) {
