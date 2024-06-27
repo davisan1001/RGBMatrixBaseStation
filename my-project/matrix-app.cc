@@ -81,19 +81,33 @@ class ClockModule : public MatrixModule {
   rgb_matrix::Color text_color;
   rgb_matrix::Color clock_color;
 
-  int clock_text_canvas_offset_x = 22;  // TODO: Consider moving this over by -1
+  struct tm *local_time;
+
+  bool flag_include_digital_clock;
+
+  int clock_text_canvas_offset_x = 22;
   int clock_text_canvas_offset_y = 28;
   int image_width = MatrixModule::matrix->width();
   int image_height = MatrixModule::matrix->height();
   // Warning: grabbing matrix->width() and height() might result in tearing
 
-  int hour_hand_circle_radius = 24;
-  int minute_hand_circle_radius = 18;
-  int second_hand_circle_radius = 16;
+  int hour_hand_circle_radius = 18;
+  int minute_hand_circle_radius = 22;
+  int second_hand_circle_radius =
+      16;  // TODO: Consider making this 20 (longer than hour hand, but slightly
+           // shorter than minute hand)
   int circle_center_x = (image_width - 1) / 2;
   int circle_center_y = (image_height - 1) / 2;
 
-  void DrawClock(struct tm *time) {
+  void UpdateTime() {
+    // current date and time on the current system
+    time_t now = time(0);
+
+    // convert now to local time
+    local_time = localtime(&now);
+  }
+
+  void DrawClock() {
     /* ~~ Draw ticks around the perimeter of the screen ~~ */
     rgb_matrix::SetImage(off_screen_canvas, 0, 0,
                          matrix_images::analog_clock_base,
@@ -102,15 +116,15 @@ class ClockModule : public MatrixModule {
                          matrix_images::analog_clock_base_height, false);
 
     // Get fraction of hour
-    double hour_fraction = (double)(time->tm_hour % 12) / 12;
+    double hour_fraction = (double)(local_time->tm_hour % 12) / 12;
     hour_fraction = 0 - hour_fraction;
 
     // Get fraction of minute
-    double minute_fraction = (double)time->tm_min / 60;
+    double minute_fraction = (double)local_time->tm_min / 60;
     minute_fraction = 0 - minute_fraction;
 
     // Get fraction of second
-    double second_fraction = (double)time->tm_sec / 60;
+    double second_fraction = (double)local_time->tm_sec / 60;
     second_fraction = 0 - second_fraction;
 
     // ~~ Draw hour line ~~ //
@@ -170,8 +184,15 @@ class ClockModule : public MatrixModule {
     rgb_matrix::DrawLine(off_screen_canvas, circle_center_x, circle_center_y,
                          second_end_x, second_end_y, clock_color);
 
+    if (flag_include_digital_clock) {
+      DrawDigitalClock();
+    }
+  }
+
+  void DrawDigitalClock() {
     // ~~ Erase digital clock bounding box ~~ //
-    // (set all pixel values to black) in the square where the time will go
+    // (set all pixel values to black) in the square where the local_time will
+    // go
     rgb_matrix::SetImage(off_screen_canvas, clock_text_canvas_offset_x,
                          clock_text_canvas_offset_y,
                          matrix_images::digital_clock_bbox_erase,
@@ -180,20 +201,23 @@ class ClockModule : public MatrixModule {
                          matrix_images::digital_clock_bbox_erase_height, false);
 
     // ~~ Draw text in the center of the screen //
-    std::string hours = std::to_string(time->tm_hour);
-    std::string minutes = std::to_string(time->tm_min);
-    if (time->tm_hour < 10) {
-      hours = "0" + std::to_string(time->tm_hour);
+    int local_hour = local_time->tm_hour - 12;
+    int local_minute = local_time->tm_min;
+    std::string hours =
+        std::to_string(local_hour);  // Convert 24 hour time to 12 hour time
+    std::string minutes = std::to_string(local_minute);
+    if (local_hour < 10) {
+      hours = "0" + std::to_string(local_hour);
     }
-    if (time->tm_min < 10) {
-      minutes = "0" + std::to_string(time->tm_min);
+    if (local_minute < 10) {
+      minutes = "0" + std::to_string(local_minute);
     }
 
-    std::string time_str = hours + ":" + minutes;
-    rgb_matrix::DrawText(off_screen_canvas, font,
-                         clock_text_canvas_offset_x + 1,
-                         clock_text_canvas_offset_y + 1 + font.baseline(),
-                         text_color, NULL, time_str.c_str(), letter_spacing);
+    std::string local_time_str = hours + ":" + minutes;
+    rgb_matrix::DrawText(
+        off_screen_canvas, font, clock_text_canvas_offset_x + 1,
+        clock_text_canvas_offset_y + 1 + font.baseline(), text_color, NULL,
+        local_time_str.c_str(), letter_spacing);
   }
 
  public:
@@ -206,19 +230,11 @@ class ClockModule : public MatrixModule {
   }
 
   rgb_matrix::FrameCanvas *UpdateCanvas() {
-    // current date and time on the current system
-    time_t now = time(0);
+    // Update the time
+    UpdateTime();
 
-    // convert now to local time
-    struct tm *local_time = localtime(&now);
-
-    // TODO: draw the analog clock with the digital clock in the center.
-    DrawClock(local_time);
-
-    // FOR DEBUGGING PURPOSES
-    // convert local_time to string form
-    char *date_time = asctime(local_time);
-    std::cout << "The current date and time is: " << date_time << std::endl;
+    // Draw the analog clock with the digital clock in the center.
+    DrawClock();
 
     return off_screen_canvas;
   }
@@ -286,11 +302,20 @@ int main(int argc, char *argv[]) {
   rgb_matrix::RuntimeOptions runtime_opt;
 
   // These are the defaults when no command-line flags are given.
+  matrix_options.hardware_mapping = "adafruit-hat-pwm";
   matrix_options.rows = 64;
   matrix_options.cols = 64;
   matrix_options.pixel_mapper_config = "rotate:90";
   matrix_options.chain_length = 1;
   matrix_options.parallel = 1;
+
+  // Helps cut down on weird graphical glitches.
+  //    If left uncapped, graphical glitches occur. but if capped to a constant
+  //    rate, they dissapear. Also worth noting that if decreasing this value
+  //    too much, the brightness of the leds decreases.
+  matrix_options.limit_refresh_rate_hz = 90;
+
+  runtime_opt.gpio_slowdown = 1;
 
   // First things first:
   // extract the command line flags that contain relevant matrix options.
@@ -319,10 +344,6 @@ int main(int argc, char *argv[]) {
 
   // ~~~ MAIN LOOP ~~~ //
   while (!interrupt_received) {
-    usleep(1 * 1000000);  // Sleep for 1 second
-
-    // TODO: Weird flickering occurs on update. Not sure why...
-
     // off_screen_canvas = textTestModule->UpdateCanvas();
     off_screen_canvas = clockModule->UpdateCanvas();
 
