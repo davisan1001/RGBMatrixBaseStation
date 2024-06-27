@@ -302,19 +302,22 @@ int main(int argc, char *argv[]) {
 
   // These are the defaults when no command-line flags are given.
   matrix_options.hardware_mapping = "adafruit-hat-pwm";
+  runtime_opt.gpio_slowdown = 1;  // Default value (works well)
   matrix_options.rows = 64;
   matrix_options.cols = 64;
   matrix_options.pixel_mapper_config = "rotate:90";
   matrix_options.chain_length = 1;
   matrix_options.parallel = 1;
 
-  // Helps cut down on weird graphical glitches.
+  // Cut down on weird graphical glitches:
   //    If left uncapped, graphical glitches occur. but if capped to a constant
   //    rate, they dissapear. Also worth noting that if decreasing this value
   //    too much, the brightness of the leds decreases.
   matrix_options.limit_refresh_rate_hz = 90;
-
-  runtime_opt.gpio_slowdown = 1;
+  //    Increasing this value should increase the on-time of the pixels which,
+  //    theoretically (untested) would help increase the brightness when
+  //    limiting the refresh rate to lower values.
+  matrix_options.pwm_lsb_nanoseconds = 130;  // Default value (works for now)
 
   // First things first:
   // extract the command line flags that contain relevant matrix options.
