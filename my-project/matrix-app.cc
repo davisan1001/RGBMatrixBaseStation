@@ -70,17 +70,49 @@ class MatrixModule {
     matrix_height = m->height();
   }
 
+  virtual rgb_matrix::FrameCanvas *UpdateCanvas() {}
+
   virtual ~MatrixModule() {}
 };
 
 // Simple generator that pulses through RGB and White.
 class WeatherStationModule : public MatrixModule {
+  int letter_spacing = 0;
+  rgb_matrix::Color seperator_color;
+  rgb_matrix::Color temp_high_color;
+  rgb_matrix::Color temp_low_color;
+  rgb_matrix::Color clock_color;
+  rgb_matrix::Color date_color;
+  rgb_matrix::Color current_weekday_color;
+  rgb_matrix::Color future_weekday_color;
+  rgb_matrix::Color temp_predicted_low_color;
+  rgb_matrix::Color temp_predicted_high_color;
+
+  rgb_matrix::Font date_text_font;
+
+  struct tm *local_datetime;
+
  public:
-  WeatherStationModule() : MatrixModule() {
-    // Do nothing for now
+  WeatherStationModule(rgb_matrix::RGBMatrix *m) : MatrixModule(m) {
+    // Setup default colors
+    seperator_color = rgb_matrix::Color(84, 84, 84);
+    rgb_matrix::Color temp_high_color = rgb_matrix::Color(255, 126, 0);
+    rgb_matrix::Color temp_low_color = rgb_matrix::Color(0, 183, 239);
+    rgb_matrix::Color clock_color = rgb_matrix::Color(255, 255, 255);
+    rgb_matrix::Color date_color = rgb_matrix::Color(
+        120, 120, 120);  // Grey (consider changing for visibility)
+    rgb_matrix::Color current_weekday_color = rgb_matrix::Color(111, 49, 152);
+    rgb_matrix::Color future_weekday_color = rgb_matrix::Color(
+        120, 120, 120);  // Grey (consider changing for visibility)
+    rgb_matrix::Color temp_predicted_low_color = rgb_matrix::Color(
+        161, 161, 161);  // Grey (consider changing for visibility)
+    rgb_matrix::Color temp_predicted_high_color = rgb_matrix::Color(
+        120, 120, 120);  // Grey (consider changing for visibility);
   }
 
- private:
+  rgb_matrix::FrameCanvas *UpdateCanvas() {
+    // TODO: Do stuff
+  }
 };
 
 // Simple analog/digital clock
@@ -232,6 +264,9 @@ class ClockModule : public MatrixModule {
 
     // Set clock color default to white
     clock_color = rgb_matrix::Color(255, 255, 255);
+
+    // Set default flag_include_digital_clock
+    flag_include_digital_clock = true;
   }
 
   rgb_matrix::FrameCanvas *UpdateCanvas() {
