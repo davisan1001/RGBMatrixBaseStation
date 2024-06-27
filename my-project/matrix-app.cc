@@ -93,9 +93,8 @@ class ClockModule : public MatrixModule {
 
   int hour_hand_circle_radius = 18;
   int minute_hand_circle_radius = 22;
-  int second_hand_circle_radius =
-      16;  // TODO: Consider making this 20 (longer than hour hand, but slightly
-           // shorter than minute hand)
+  int second_hand_circle_radius = 20;
+
   int circle_center_x = (image_width - 1) / 2;
   int circle_center_y = (image_height - 1) / 2;
 
