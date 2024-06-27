@@ -88,6 +88,10 @@ class WeatherStationModule : public MatrixModule {
   rgb_matrix::Color temp_predicted_low_color;
   rgb_matrix::Color temp_predicted_high_color;
 
+  rgb_matrix::Font
+      current_temp_font;  // 7-8 x 13-14 font should work here. Experiment with
+                          // different ones and see which you like best.
+
   struct tm *local_datetime;
 
   void DrawSeperatorLines() {
@@ -122,6 +126,8 @@ class WeatherStationModule : public MatrixModule {
         161, 161, 161);  // Grey (consider changing for visibility)
     temp_predicted_high_color = rgb_matrix::Color(
         120, 120, 120);  // Grey (consider changing for visibility);
+
+    // TODO: Setup current temp font
   }
 
   rgb_matrix::FrameCanvas *UpdateCanvas() {
