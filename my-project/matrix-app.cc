@@ -31,7 +31,9 @@ static void InterruptHandler(int signo) { interrupt_received = true; }
 // ~~~ BEGIN CLASS DEFINITIONS ~~~ //
 class MatrixModule {
  protected:
-  rgb_matrix::RGBMatrix *matrix;
+  static int matrix_width;
+  static int matrix_height;
+
   rgb_matrix::FrameCanvas *off_screen_canvas;
 
   rgb_matrix::Font font;
@@ -40,7 +42,6 @@ class MatrixModule {
   MatrixModule(rgb_matrix::RGBMatrix *m) {
     // Setup font
     const char *bdf_font_file = "../fonts/tom-thumb_fixed_4x6.bdf";
-    // const char *bdf_font_file = "../fonts/tom-thumb.bdf";
 
     if (bdf_font_file == NULL) {
       std::string errMsg = std::string("Unrecognized font file\n");
@@ -56,12 +57,18 @@ class MatrixModule {
       throw std::invalid_argument(errMsg);
     }
 
-    matrix = m;
-
+    // Store a reference to a new off_screen_canvas
+    //    (one for each module initialized)
     off_screen_canvas = m->CreateFrameCanvas();
   }
 
  public:
+  // Initialize all necessary static member variables
+  static void InitStaticMatrixVariables(rgb_matrix::RGBMatrix *m) {
+    matrix_width = m->width();
+    matrix_height = m->height();
+  }
+
   virtual ~MatrixModule() {}
 };
 
@@ -87,16 +94,14 @@ class ClockModule : public MatrixModule {
 
   int clock_text_canvas_offset_x = 22;
   int clock_text_canvas_offset_y = 28;
-  int image_width = MatrixModule::matrix->width();
-  int image_height = MatrixModule::matrix->height();
   // Warning: grabbing matrix->width() and height() might result in tearing
 
   int hour_hand_circle_radius = 18;
   int minute_hand_circle_radius = 22;
   int second_hand_circle_radius = 20;
 
-  int circle_center_x = (image_width - 1) / 2;
-  int circle_center_y = (image_height - 1) / 2;
+  int circle_center_x = (matrix_width - 1) / 2;
+  int circle_center_y = (matrix_height - 1) / 2;
 
   void UpdateTime() {
     // current date and time on the current system
@@ -331,6 +336,9 @@ int main(int argc, char *argv[]) {
 
   FrameCanvas *off_screen_canvas = matrix->CreateFrameCanvas();
 
+  // Initialize MatrixModule static variables
+  MatrixModule::InitStaticMatrixVariables(matrix);
+
   // Initialize the MatrixModule objects
   // WeatherModule *weatherModule = new WeatherStationModule();
   ClockModule *clockModule = new ClockModule(matrix);
@@ -345,7 +353,6 @@ int main(int argc, char *argv[]) {
 
   // ~~~ MAIN LOOP ~~~ //
   while (!interrupt_received) {
-    // off_screen_canvas = textTestModule->UpdateCanvas();
     off_screen_canvas = clockModule->UpdateCanvas();
 
     off_screen_canvas = matrix->SwapOnVSync(off_screen_canvas);
