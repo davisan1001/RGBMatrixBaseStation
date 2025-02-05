@@ -24,8 +24,11 @@ that they have the freedom to adapt and improve).
 
 ## Discourse discussion group
 
-If you'd like help, please do not file a bug, use the discussion board instead:
-https://rpi-rgb-led-matrix.discourse.group/
+**If you'd like help, please do not file a bug, use the discussion board instead:**
+https://rpi-rgb-led-matrix.discourse.group/  (obviously please read this whole page first).
+If you file a bug asking for personal help instead of using the discourse group, please
+state in your bug that you have read this entire page and that you're indeed filing a bug
+or request for improvement. Otherwise, please use the discourse group.
 
 Overview
 --------
@@ -41,12 +44,17 @@ Check out [utils/ directory for some ready-made tools](./utils) to get started
 using the library, or the [examples-api-use/](./examples-api-use) directory if
 you want to get started programming your own utils.
 
-All Raspberry Pi versions supported
------------------------------------
+Raspberry Pi up to 4 supported
+------------------------------
 
-This supports the old Raspberry Pi's Version 1 with 26 pin header and also the
-B+ models, the Pi Zero, Raspberry Pi 2 and 3 with 40 pins, as well as the
-Compute Modules which have 44 GPIOs.
+This library supports the old Raspberry Pi's Version 1 with 26 pin header and
+also the B+ models, the Pi Zero, Raspberry Pi 2 and 3 with 40 pins, as well
+as the Compute Modules which have 44 GPIOs.
+
+The Raspberry Pi 5 still needs some research into the vastly changed peripherals
+and is not yet supported. See https://github.com/hzeller/rpi-rgb-led-matrix/issues/1603#issuecomment-2624713250
+and https://github.com/adafruit/Adafruit_Blinka_Raspberry_Pi5_Piomatter
+
 The 26 pin models can drive one chain of RGB panels, the 40 pin models
 **up to three** chains in parallel (each chain 12 or more panels long).
 The Compute Module can drive **up to 6 chains in parallel**.
@@ -132,6 +140,15 @@ sudo examples-api-use/demo -D0
     compile and run these.
   4. Write your own programs using the Matrix in C++ or one of the
      bindings such as Python or C#.
+
+### Wiring / Boards
+
+Please see the [Adadpter Boards or Self Wiring](./adapter). 
+
+Summary is:
+- Yes you can self wire without level shifters and it will work most of the time, but if you're not in a hurry get a board
+- https://www.electrodragon.com/product/rgb-matrix-panel-drive-board-for-raspberry-pi-v2/ **is the recommended solution with 3 channels and level shifters**. You can't go wrong there, but expect a bit of shipping time.
+- If shipping time is crucial and you don't want to wire your own, Adafruit sells a single channel board (the electrodragon one is 3 channels), but note that its wiring is non standard and requires a special compile option or command line argument: https://www.adafruit.com/product/3211
 
 ### Utilities
 
@@ -381,6 +398,20 @@ the vsync-multiple flag `-V` in the [led-image-viewer] or
 [video-viewer] utility programs.
 
 ```
+--led-no-busy-waiting     : Don't use busy waiting when limiting refresh rate.
+```
+
+This allows to switch from busy waiting to sleep waiting when limiting the
+refresh rate (`--led-limit-refresh`).
+
+By default, refresh rate limiting uses busy waiting, which is CPU intensive but
+gives most accurate timings. This is fine for multi-core boards.
+
+On single core boards (e.g.: Raspberry Pi Zero) busy waiting makes the system
+unresponsive for other/background tasks. There, sleep waiting improves the
+system's responsiveness at the cost of slightly less accurate timings.
+
+```
 --led-scan-mode=<0..1>    : 0 = progressive; 1 = interlaced (Default: 0).
 ```
 
@@ -445,7 +476,7 @@ to debug if it has something to do with the sound subsystem (see Troubleshooting
 section). This is really only recommended for debugging; typically you actually
 want the hardware pulses as it results in a much more stable picture.
 
-<a name="no-drop-priv"/>
+<a name="no-drop-priv"></a>
 
 ```
 --led-no-drop-privs       : Don't drop privileges from 'root' after initializing the hardware.
