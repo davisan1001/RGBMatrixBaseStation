@@ -2,7 +2,7 @@
 #define CLOCK_MODULE_H
 
 #include "matrix-module.hpp"
-#include "matrix-clock-module-images.hpp"
+#include "clock-module-images.hpp"
 
 // Simple analog/digital clock
 class ClockModule : public MatrixModule

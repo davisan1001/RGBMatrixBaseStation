@@ -23,8 +23,8 @@
 #include "graphics.h"
 #include "led-matrix.h"
 #include "pixel-mapper.h"
-#include "matrix-clock-module-images.hpp"  // Need [contains byte array images]
-#include "matrix-weather-module-images.hpp"  // Need [contains byte array images]
+#include "clock-module-images.hpp"  // Need [contains byte array images]
+#include "weather-module-images.hpp"  // Need [contains byte array images]
 #include "matrix-module.hpp"
 #include "clock-module.hpp"
 #include "weather-station-module.hpp"
