@@ -1,5 +1,7 @@
-#include <stdint.h>
+#ifndef CLOCK_MODULE_IMAGES_H // include guard
+#define CLOCK_MODULE_IMAGES_H
 
+#include <stdint.h>
 #include <cstddef>
 
 namespace matrix_images {
@@ -854,3 +856,5 @@ const uint8_t analog_clock_base[analog_clock_base_size] = {
     0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
     0,   0,   0};
 }  // namespace matrix_images
+
+#endif

@@ -1,5 +1,7 @@
-#include <stdint.h>
+#ifndef WEATHER_MODULE_IMAGES_H // include guard
+#define WEATHER_MODULE_IMAGES_H
 
+#include <stdint.h>
 #include <cstddef>
 
 namespace matrix_weather_images {
@@ -805,3 +807,5 @@ const uint8_t small_thunder_showers_icon_option5[small_weather_icon_size] = {
     0,   0,   0,   255, 126, 0,   255, 126, 0,   0,   0,   0,   0,   0,   0,
     0,   187, 255, 0,   0,   0,   0,   0,   0,   0,   0,   0};
 }  // namespace matrix_weather_images
+
+#endif
