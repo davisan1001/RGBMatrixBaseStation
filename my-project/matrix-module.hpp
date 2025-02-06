@@ -16,16 +16,16 @@ class MatrixModule {
 
 		rgb_matrix::Font font;
 
-		MatrixModule() {}
+		MatrixModule();
 		MatrixModule(rgb_matrix::RGBMatrix *m);
 
 	public:
 		// Initialize all necessary static member variables
 		static void InitStaticMatrixVariables(rgb_matrix::RGBMatrix *m);
 
-		virtual rgb_matrix::FrameCanvas *UpdateCanvas() {}
+		virtual rgb_matrix::FrameCanvas *UpdateCanvas() = 0;
 
-		virtual ~MatrixModule() {}
+		virtual ~MatrixModule();
 };
 
 #endif

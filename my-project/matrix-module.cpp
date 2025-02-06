@@ -1,5 +1,10 @@
 #include "matrix-module.hpp"
 
+int MatrixModule::matrix_width;
+int MatrixModule::matrix_height;
+
+MatrixModule::MatrixModule() {}
+
 MatrixModule::MatrixModule(rgb_matrix::RGBMatrix *m) {
     // Setup font
     const char *bdf_font_file = "../fonts/tom-thumb_fixed_4x6.bdf"; // TODO: This should be setable for each matrix module.
@@ -23,7 +28,9 @@ MatrixModule::MatrixModule(rgb_matrix::RGBMatrix *m) {
     off_screen_canvas = m->CreateFrameCanvas();
 }
 
+MatrixModule::~MatrixModule() {}
+
 void MatrixModule::InitStaticMatrixVariables(rgb_matrix::RGBMatrix *m){
-	matrix_width = m->width();
-	matrix_height = m->height();
+	MatrixModule::matrix_width = m->width();
+	MatrixModule::matrix_height = m->height();
 }

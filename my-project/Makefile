@@ -1,7 +1,7 @@
 CFLAGS = -Wall -O3 -g -Wextra -Wno-unused-parameter -std=c++20
 CXXFLAGS = $(CFLAGS)
 
-SOURCES = matrix-app.c
+SOURCES = matrix-app.c matrix-module.c clock-module.c
 OBJECTS = $(SOURCES:.c=.o)
 TARGET = matrix-app
 
@@ -16,14 +16,14 @@ LDFLAGS += -L$(RGB_LIBDIR) -l$(RGB_LIBRARY_NAME) -lrt -lm -lpthread
 
 all : $(TARGET)
 
-$(RGB_LIBRARY): FORCE
-	$(MAKE) -C $(RGB_LIBDIR)
-
 $(TARGET) : $(OBJECTS) $(RGB_LIBRARY)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-%.o : %.cc
+%.o : %.cpp
 	$(CXX) -I$(RGB_INCDIR) $(CXXFLAGS) -c -o $@ $<
+	
+$(RGB_LIBRARY): FORCE
+	$(MAKE) -C $(RGB_LIBDIR)
 
 
 clean:
