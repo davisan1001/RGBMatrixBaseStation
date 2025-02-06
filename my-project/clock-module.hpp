@@ -23,11 +23,14 @@ private:
     int minute_hand_circle_radius = 22;
     int second_hand_circle_radius = 20;
 
-    int circle_center_x = (matrix_width - 1) / 2;
-    int circle_center_y = (matrix_height - 1) / 2;
+    int circle_center_x = matrix_width / 2;
+    int circle_center_y = matrix_height / 2;
 
     void UpdateTime();
 
+    void DrawClockHourHand(double hour_fraction);
+    void DrawClockMinHand(double minute_fraction);
+    void DrawClockSecHand(double second_fraction);
     void DrawClock();
 
     void DrawDigitalClock();
