@@ -21,8 +21,8 @@
 #include <string>     // Need [for strings]
 
 //#include "graphics.h"
-#include "led-matrix.h"
-#include "pixel-mapper.h"
+//#include "led-matrix.h"
+//#include "pixel-mapper.h"
 #include "clock-module-images.hpp"  // Need [contains byte array images]
 #include "weather-module-images.hpp"  // Need [contains byte array images]
 #include "matrix-module.hpp"

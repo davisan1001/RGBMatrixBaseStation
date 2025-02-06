@@ -18,6 +18,7 @@ class MatrixModule {
 
 		MatrixModule();
 		MatrixModule(rgb_matrix::RGBMatrix *m);
+        MatrixModule(rgb_matrix::RGBMatrix *m, const char *bdf_font_file);
 
 	public:
 		// Initialize all necessary static member variables

@@ -5,8 +5,7 @@
 #include "clock-module-images.hpp"
 
 // Simple analog/digital clock
-class ClockModule : public MatrixModule
-{
+class ClockModule : public MatrixModule {
 private:
     int letter_spacing = 0;
     rgb_matrix::Color text_color;
