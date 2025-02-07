@@ -177,7 +177,7 @@ rgb_matrix::FrameCanvas* ClockModule::UpdateCanvas() {
     // Wait to show the time
     clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
     // Update the time seconds
-    next_time.tv_sec += 1;
+    //next_time.tv_sec += 1; // TODO: Don't need this??
 
 	return off_screen_canvas;
 }
