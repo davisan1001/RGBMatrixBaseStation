@@ -33,10 +33,6 @@ void ClockModule::SetCurrentNetworkTime() {
     next_time.tv_nsec = 0;
 }
 
-void ClockModule::UpdateTime() {
-    return;
-}
-
 void ClockModule::DrawClockHourHand(double hour_fraction) {
 	// Calculate point on circle circumference
 	int hour_end_x =
