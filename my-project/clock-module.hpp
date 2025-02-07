@@ -26,10 +26,16 @@ private:
     int second_hand_circle_radius = 20;
 
     int circle_center_x = matrix_width / 2;
-    int circle_center_y = matrix_height / 2;
+    int circle_center_y = (matrix_height - 1) / 2;
 
+    // TODO:    The current implementation will probably cause
+    //          A problem when I stop updating this module...
+    //          The next_time.tv_sec will stop counting up and retain it's old value.
+    //          A solution to this would be to create a function that automatically
+    //          calls after the module status has been idle for a while.
+    //          In this functtion we would reset the next_time.tv_sec to time(null), just
+    //          like in the constructor.
     void SetCurrentNetworkTime();
-    void UpdateTime(); // TODO: Doesn't do anything.
 
     void DrawClockHourHand(double hour_fraction);
     void DrawClockMinHand(double minute_fraction);
