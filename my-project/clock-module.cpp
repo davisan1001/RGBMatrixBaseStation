@@ -34,18 +34,13 @@ void ClockModule::SetCurrentNetworkTime() {
 }
 
 void ClockModule::DrawClockHourHand(double hour_fraction) {
-
-    hour_fraction = 0.5; // TODO: EXPERIMENTING
-
 	// Calculate point on circle circumference
-	int hour_end_x =
-		circle_center_x +
-		(hour_hand_circle_radius * cos(hour_fraction * (2 * std::numbers::pi) +
-			(0.5 * std::numbers::pi)));
-	int hour_end_y =
-		circle_center_y +
-		(hour_hand_circle_radius * sin(hour_fraction * (2 * std::numbers::pi) -
-			(0.5 * std::numbers::pi)));
+	int hour_end_x = round(
+		circle_center_x + (hour_hand_circle_radius *
+            cos(hour_fraction * (2.0 * std::numbers::pi) + (0.5 * std::numbers::pi))));
+	int hour_end_y = round(
+		circle_center_y + (hour_hand_circle_radius *
+            sin(hour_fraction * (2.0 * std::numbers::pi) - (0.5 * std::numbers::pi))));
 
 	// Need to draw 4 lines because the middle is represented as a 2 by 2 pixel block
 	for (int i = 0; i < 2; i++) {
@@ -59,14 +54,12 @@ void ClockModule::DrawClockHourHand(double hour_fraction) {
 
 void ClockModule::DrawClockMinHand(double minute_fraction) {
 	// Calculate point on circle circumference
-	int minute_end_x =
+	int minute_end_x = round(
 		circle_center_x + (minute_hand_circle_radius *
-			cos(minute_fraction * (2 * std::numbers::pi) +
-				(0.5 * std::numbers::pi)));
-	int minute_end_y =
+			cos(minute_fraction * (2 * std::numbers::pi) + (0.5 * std::numbers::pi))));
+	int minute_end_y = round(
 		circle_center_y + (minute_hand_circle_radius *
-			sin(minute_fraction * (2 * std::numbers::pi) -
-				(0.5 * std::numbers::pi)));
+			sin(minute_fraction * (2 * std::numbers::pi) - (0.5 * std::numbers::pi))));
 
 	// Need to draw 4 lines because the middle is represented as a 2 by 2 pixel
 	// block
@@ -81,14 +74,12 @@ void ClockModule::DrawClockMinHand(double minute_fraction) {
 
 void ClockModule::DrawClockSecHand(double second_fraction) {
 	// Calculate point on circle circumference
-	int second_end_x =
+	int second_end_x = round(
 		circle_center_x + (second_hand_circle_radius *
-			cos(second_fraction * (2 * std::numbers::pi) +
-				(0.5 * std::numbers::pi)));
-	int second_end_y =
+			cos(second_fraction * (2.0 * std::numbers::pi) + (0.5 * std::numbers::pi))));
+	int second_end_y = round(
 		circle_center_y + (second_hand_circle_radius *
-			sin(second_fraction * (2 * std::numbers::pi) -
-				(0.5 * std::numbers::pi)));
+			sin(second_fraction * (2.0 * std::numbers::pi) - (0.5 * std::numbers::pi))));
 
 	// Need only draw one line because this is the second hand.
 	rgb_matrix::DrawLine(off_screen_canvas, circle_center_x, circle_center_y,
@@ -96,7 +87,7 @@ void ClockModule::DrawClockSecHand(double second_fraction) {
 }
 
 void ClockModule::DrawClock() {
-	/* ~~ Draw ticks around the perimeter of the screen ~~ */ // TODO: Make this a seperate function
+	/* ~~ Draw ticks around the perimeter of the screen ~~ */
 	rgb_matrix::SetImage(off_screen_canvas, 0, 0,
 		matrix_images::analog_clock_base,
 		matrix_images::analog_clock_base_size,
@@ -105,10 +96,12 @@ void ClockModule::DrawClock() {
 
 	// Get fraction of hour
 	double hour_fraction = (double)((local_time.tm_hour % 12) + (double)(local_time.tm_min) / 60) / 12;
+    hour_fraction = 3.0/12.0; // TODO: EXPERIMENT
 	hour_fraction = 0 - hour_fraction;
 
 	// Get fraction of minute
 	double minute_fraction = (double)local_time.tm_min / 60;
+    minute_fraction = 0.0/60; // TODO: EXPERIMENT
 	minute_fraction = 0 - minute_fraction;
 
 	// Get fraction of second
@@ -121,7 +114,7 @@ void ClockModule::DrawClock() {
 	// ~~ Draw minute line ~~ //
 	DrawClockMinHand(minute_fraction);
 
-	// ~~ Draw second line ~~ // // TODO: Make this a seperate function
+	// ~~ Draw second line ~~ //
 	DrawClockSecHand(second_fraction);
 
 	if (flag_include_digital_clock) {

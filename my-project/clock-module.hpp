@@ -25,8 +25,8 @@ private:
     int minute_hand_circle_radius = 22;
     int second_hand_circle_radius = 20;
 
-    int circle_center_x = (matrix_width-1) / 2;
-    int circle_center_y = matrix_height / 2;
+    int circle_center_x = (matrix_width - 1) / 2;
+    int circle_center_y = (matrix_height - 1) / 2;
 
     // TODO:    The current implementation will probably cause
     //          A problem when I stop updating this module...
