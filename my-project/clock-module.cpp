@@ -34,6 +34,9 @@ void ClockModule::SetCurrentNetworkTime() {
 }
 
 void ClockModule::DrawClockHourHand(double hour_fraction) {
+
+    hour_fraction = 0.5; // TODO: EXPERIMENTING
+
 	// Calculate point on circle circumference
 	int hour_end_x =
 		circle_center_x +
