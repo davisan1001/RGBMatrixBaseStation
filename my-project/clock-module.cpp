@@ -23,14 +23,19 @@ ClockModule::ClockModule(rgb_matrix::RGBMatrix* m) : MatrixModule(m) {
 
 	// Set default flag_include_digital_clock
 	flag_include_digital_clock = true;
+
+    SetCurrentNetworkTime();
+}
+
+void ClockModule::SetCurrentNetworkTime() {
+    // current date and time on the current system
+    next_time.tv_sec = time(NULL);
+    next_time.tv_nsec = 0;
 }
 
 void ClockModule::UpdateTime() {
-	// current date and time on the current system
-	time_t now = time(0);
-
-	// convert now to local time
-	local_time = localtime(&now);
+	
+    return
 }
 
 void ClockModule::DrawClockHourHand(double hour_fraction) {
@@ -158,12 +163,22 @@ void ClockModule::DrawDigitalClock() {
 
 rgb_matrix::FrameCanvas* ClockModule::UpdateCanvas() {
 	// Update the time
-	UpdateTime();
+	UpdateTime(); // TODO: Currently empty.
+    // Update the time seconds
+    next_time.tv_sec += 1;
+
+    // Set readable local_time from next_time.tv_sec
+    localtime_r(&next_time.tv_sec, local_time);
 
 	// TODO: There should be a function that updates all time fractions and stuff here.
 
 	// Draw the analog clock with the digital clock in the center.
 	DrawClock();
+
+    // Wait to show the time
+    clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
+    // Update the time seconds
+    next_time.tv_sec += 1;
 
 	return off_screen_canvas;
 }

@@ -11,6 +11,8 @@ private:
     rgb_matrix::Color text_color;
     rgb_matrix::Color clock_color;
 
+    // Time Variables
+    struct timespec next_time;
     struct tm* local_time;
 
     bool flag_include_digital_clock;
@@ -26,7 +28,8 @@ private:
     int circle_center_x = matrix_width / 2;
     int circle_center_y = matrix_height / 2;
 
-    void UpdateTime();
+    void SetCurrentNetworkTime();
+    void UpdateTime(); // TODO: Doesn't do anything.
 
     void DrawClockHourHand(double hour_fraction);
     void DrawClockMinHand(double minute_fraction);
