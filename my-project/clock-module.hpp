@@ -13,7 +13,7 @@ private:
 
     // Time Variables
     struct timespec next_time;
-    struct tm* local_time;
+    struct tm local_time;
 
     bool flag_include_digital_clock;
 

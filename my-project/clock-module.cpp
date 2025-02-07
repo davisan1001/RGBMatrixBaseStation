@@ -105,15 +105,15 @@ void ClockModule::DrawClock() {
 		matrix_images::analog_clock_base_height, false);
 
 	// Get fraction of hour
-	double hour_fraction = (double)((local_time->tm_hour % 12) + (double)(local_time->tm_min) / 60) / 12;
+	double hour_fraction = (double)((local_time.tm_hour % 12) + (double)(local_time.tm_min) / 60) / 12;
 	hour_fraction = 0 - hour_fraction;
 
 	// Get fraction of minute
-	double minute_fraction = (double)local_time->tm_min / 60;
+	double minute_fraction = (double)local_time.tm_min / 60;
 	minute_fraction = 0 - minute_fraction;
 
 	// Get fraction of second
-	double second_fraction = (double)local_time->tm_sec / 60;
+	double second_fraction = (double)local_time.tm_sec / 60;
 	second_fraction = 0 - second_fraction;
 
 	// ~~ Draw hour line ~~ //
@@ -142,8 +142,8 @@ void ClockModule::DrawDigitalClock() {
 		matrix_images::digital_clock_bbox_erase_height, false);
 
 	// ~~ Draw text in the center of the screen //
-	int local_hour = local_time->tm_hour > 12 ? local_time->tm_hour - 12 : local_time->tm_hour; // Convert 24 hour time to 12 hour time
-	int local_minute = local_time->tm_min;
+	int local_hour = local_time.tm_hour > 12 ? local_time.tm_hour - 12 : local_time.tm_hour; // Convert 24 hour time to 12 hour time
+	int local_minute = local_time.tm_min;
 	std::string hours = std::to_string(local_hour);
 	std::string minutes = std::to_string(local_minute);
 	if (local_hour < 10) {
@@ -167,7 +167,7 @@ rgb_matrix::FrameCanvas* ClockModule::UpdateCanvas() {
     next_time.tv_sec += 1;
 
     // Set readable local_time from next_time.tv_sec
-    localtime_r(&next_time.tv_sec, local_time);
+    localtime_r(&next_time.tv_sec, &local_time);
 
 	// TODO: There should be a function that updates all time fractions and stuff here.
 
