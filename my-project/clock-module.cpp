@@ -34,8 +34,7 @@ void ClockModule::SetCurrentNetworkTime() {
 }
 
 void ClockModule::UpdateTime() {
-	
-    return
+    return;
 }
 
 void ClockModule::DrawClockHourHand(double hour_fraction) {
