@@ -3,15 +3,6 @@
 #include <math.h>
 #include <numbers>
 
-// TODO: Apply MANY MANY optimizations to this code. Currently the code runs at 94% CPU (single-core)
-	// - One immediate idea is to not recalculate all math every time I want to draw. Create a function
-	// to check if the time has updated enough to cause a change to the screen and only updates if
-	// that's the case.
-	// - Another idea would be to separate calculation code and drawing code.. This should probably be
-	// done anyway.
-	// - Another idea would be to sync the clock up to the seconds ticking by as closely as possible.
-	// Then all we would need to do is update the screen only once per second. During the rest of that
-	// second, we could figure out what the next time will be and update accordingly.
 // Simple analog/digital clock
 
 ClockModule::ClockModule(rgb_matrix::RGBMatrix* m) : MatrixModule(m) {
@@ -96,12 +87,10 @@ void ClockModule::DrawClock() {
 
 	// Get fraction of hour
 	double hour_fraction = (double)((local_time.tm_hour % 12) + (double)(local_time.tm_min) / 60) / 12;
-    hour_fraction = 3.0/12.0; // TODO: EXPERIMENT
 	hour_fraction = 0 - hour_fraction;
 
 	// Get fraction of minute
 	double minute_fraction = (double)local_time.tm_min / 60;
-    minute_fraction = 0.0/60; // TODO: EXPERIMENT
 	minute_fraction = 0 - minute_fraction;
 
 	// Get fraction of second
