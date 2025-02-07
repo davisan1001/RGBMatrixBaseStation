@@ -164,7 +164,7 @@ rgb_matrix::FrameCanvas* ClockModule::UpdateCanvas() {
 	// Update the time
 	UpdateTime(); // TODO: Currently empty.
     // Update the time seconds
-    next_time.tv_sec += 1;
+    //next_time.tv_sec += 1;
 
     // Set readable local_time from next_time.tv_sec
     localtime_r(&next_time.tv_sec, &local_time);
@@ -177,7 +177,7 @@ rgb_matrix::FrameCanvas* ClockModule::UpdateCanvas() {
     // Wait to show the time
     clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
     // Update the time seconds
-    //next_time.tv_sec += 1; // TODO: Don't need this??
+    next_time.tv_sec += 1; // TODO: Don't need this??
 
 	return off_screen_canvas;
 }
