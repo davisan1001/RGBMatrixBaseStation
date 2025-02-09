@@ -15,23 +15,23 @@ ClockModule::ClockModule(rgb_matrix::RGBMatrix* m) : MatrixModule(m) {
 	// Set default flag_include_digital_clock
 	flag_include_digital_clock = true;
 
-    SetCurrentNetworkTime();
+	SetCurrentNetworkTime();
 }
 
 void ClockModule::SetCurrentNetworkTime() {
-    // current date and time on the current system
-    next_time.tv_sec = time(NULL);
-    next_time.tv_nsec = 0;
+	// current date and time on the current system
+	next_time.tv_sec = time(NULL);
+	next_time.tv_nsec = 0;
 }
 
 void ClockModule::DrawClockHourHand(double hour_fraction) {
 	// Calculate point on circle circumference
 	int hour_end_x = round(
 		circle_center_x + (hour_hand_circle_radius *
-            cos(hour_fraction * (2.0 * std::numbers::pi) + (0.5 * std::numbers::pi))));
+			cos(hour_fraction * (2.0 * std::numbers::pi) + (0.5 * std::numbers::pi))));
 	int hour_end_y = round(
 		circle_center_y + (hour_hand_circle_radius *
-            sin(hour_fraction * (2.0 * std::numbers::pi) - (0.5 * std::numbers::pi))));
+			sin(hour_fraction * (2.0 * std::numbers::pi) - (0.5 * std::numbers::pi))));
 
 	// Need to draw 4 lines because the middle is represented as a 2 by 2 pixel block
 	for (int i = 0; i < 2; i++) {
@@ -142,17 +142,24 @@ void ClockModule::DrawDigitalClock() {
 }
 
 rgb_matrix::FrameCanvas* ClockModule::UpdateCanvas() {
-    // Update the time seconds
-    next_time.tv_sec += 1;
+	// Update the time seconds
+	next_time.tv_sec += 1;
 
-    // Set readable local_time from next_time.tv_sec
-    localtime_r(&next_time.tv_sec, &local_time);
+	// Set readable local_time from next_time.tv_sec
+	localtime_r(&next_time.tv_sec, &local_time);
 
 	// Draw the analog clock with the digital clock in the center.
 	DrawClock();
 
-    // Wait to show the time
-    clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
+	// Wait to show the time
+	//  TODO: Maybe I should make this non blocking?
+	//  Instead of a blocking call to sleep, maybe it would be best to maintain
+    //  the main animation loop in matrix-app.cpp by checking if this time is
+    //  equal to next_time and if not, then just returning null or something.
+    //  Of course, we would have to make sure that Drawclock doesn't run unless
+    //  a new time is ready to be created. And next_time.tv_sec doesn't update
+    //  at every loop...
+	clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
 
 	return off_screen_canvas;
 }

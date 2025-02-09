@@ -3,6 +3,8 @@
 
 #include "matrix-module.hpp"
 
+#include <string>
+
 class WeatherStationModule : public MatrixModule {
 private:
 	int letter_spacing = 0;
@@ -22,6 +24,16 @@ private:
 
 	struct tm* local_datetime;
 
+    // Kentville AAFC citypage_weather XML document
+    std::string weatherCanadaDatamartURL;
+    std::string weatherDataOutputFile;
+
+    // Weather Fetch Functions
+    void FetchWeatherCanData();
+
+    void ParseWeatherXMLData();
+
+    // Draw Methods
 	void DrawSeperatorLines(); // TODO: Implement this
 
 	void DrawCurrentDateTime(); // TODO: Implement this
