@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
 
     // Run the module thread
     pthread_t clockModuleThread;
-    pthread_create(&clockModuleThread, NULL, clockModule->StartThreadRun, clockModule);
+    pthread_create(&clockModuleThread, NULL, MatrixModule::StartThreadRun, clockModule);
 
 	// ~~~ MAIN LOOP ~~~ //
 	while (!interrupt_received) {

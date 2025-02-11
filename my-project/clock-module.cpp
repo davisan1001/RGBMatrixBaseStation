@@ -123,7 +123,8 @@ void ClockModule::DrawDigitalClock() {
 		matrix_images::digital_clock_bbox_erase_height, false);
 
 	// ~~ Draw text in the center of the screen //
-	int local_hour = local_time.tm_hour > 12 ? local_time.tm_hour - 12 : local_time.tm_hour; // Convert 24 hour time to 12 hour time
+	//int local_hour = local_time.tm_hour > 12 ? local_time.tm_hour - 12 : local_time.tm_hour; // TODO: Attempted fix below
+    int local_hour = (local_time.tm_hour % 12) == 0 ? 12 : (local_time.tm_hour % 12); // Convert 24 hour time to 12 hour time
 	int local_minute = local_time.tm_min;
 	std::string hours = std::to_string(local_hour);
 	std::string minutes = std::to_string(local_minute);
