@@ -5,7 +5,7 @@
 
 // Simple analog/digital clock
 
-ClockModule::ClockModule(rgb_matrix::RGBMatrix* m) : MatrixModule(m) {
+ClockModule::ClockModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m) : MatrixModule(t_modArg, m) {
 	// Set text color default to white
 	text_color = rgb_matrix::Color(255, 255, 255);
 
@@ -141,7 +141,7 @@ void ClockModule::DrawDigitalClock() {
 		local_time_str.c_str(), letter_spacing);
 }
 
-void ClockModule::Run(t_module* t_mod) {
+void *ClockModule::Run() {
     while (true) { // TODO: A while true loop is definitely not the way. Fix this.
         // Update the time seconds
         next_time.tv_sec += 1;
@@ -165,5 +165,6 @@ void ClockModule::Run(t_module* t_mod) {
         t_mod->off_screen_canvas = off_screen_canvas;
         t_mod->update = true; // Set to true AFTER
     }
-	return;
+	
+    pthread_exit(NULL);
 }

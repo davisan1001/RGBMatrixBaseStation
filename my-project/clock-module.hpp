@@ -45,9 +45,9 @@ private:
     void DrawDigitalClock();
 
 public:
-    ClockModule(rgb_matrix::RGBMatrix* m);
+    ClockModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m);
 
-    void Run(t_module* t_mod);
+    void *Run();
 };
 
 #endif

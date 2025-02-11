@@ -3,9 +3,11 @@
 int MatrixModule::matrix_width;
 int MatrixModule::matrix_height;
 
-MatrixModule::MatrixModule() {}
+MatrixModule::MatrixModule(t_module* t_modArg) {
+    t_mod = t_modArg;
+}
 
-MatrixModule::MatrixModule(rgb_matrix::RGBMatrix* m) {
+MatrixModule::MatrixModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m) : MatrixModule::MatrixModule(t_modArg) {
 	// Setup font
 	const char* bdf_font_file = "../fonts/tom-thumb_fixed_4x6.bdf"; // TODO: This should be setable for each matrix module.
 
@@ -28,7 +30,7 @@ MatrixModule::MatrixModule(rgb_matrix::RGBMatrix* m) {
 	off_screen_canvas = m->CreateFrameCanvas();
 }
 
-MatrixModule::MatrixModule(rgb_matrix::RGBMatrix* m, const char* bdf_font_file) {
+MatrixModule::MatrixModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m, const char* bdf_font_file) : MatrixModule::MatrixModule(t_modArg) {
 	if (bdf_font_file == NULL) {
 		std::string errMsg = std::string("Unrecognized font file\n");
 		std::cerr << errMsg.c_str();
@@ -53,4 +55,8 @@ MatrixModule::~MatrixModule() {}
 void MatrixModule::InitStaticMatrixVariables(rgb_matrix::RGBMatrix* m) {
 	MatrixModule::matrix_width = m->width();
 	MatrixModule::matrix_height = m->height();
+}
+
+void *MatrixModule::StartThreadRun(void * context) {
+    return ((MatrixModule*)context)->Run();
 }

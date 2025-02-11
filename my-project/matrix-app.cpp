@@ -19,13 +19,14 @@
 #include <sstream>    // Need [for string manipulation]
 #include <stdexcept>  // Need [for throwing exceptions]
 #include <string>     // Need [for strings]
+#include <thread>
 
 //#include "graphics.h"
 //#include "led-matrix.h"
 //#include "pixel-mapper.h"
 #include "matrix-module.hpp"
 #include "clock-module.hpp"
-#include "weather-station-module.hpp"
+//#include "weather-station-module.hpp"
 
 const int REFRESH_RATE = 90;
 
@@ -84,8 +85,8 @@ int main(int argc, char* argv[]) {
 
 	// Initialize the MatrixModule objects
 	//MatrixModule* weatherModule = new WeatherStation::WeatherStationModule(matrix);
-	MatrixModule* clockModule = new ClockModule(matrix);
     t_module* t_clock_module = new t_module();
+	MatrixModule* clockModule = new ClockModule(t_clock_module, matrix);
     t_clock_module->update = false;
     t_clock_module->off_screen_canvas = nullptr;
 
@@ -97,8 +98,9 @@ int main(int argc, char* argv[]) {
 
 	printf("Press <CTRL-C> to exit and reset LEDs\n");
 
-    // Run the module
-    clockModule->Run(t_clock_module);
+    // Run the module thread
+    pthread_t clockModuleThread;
+    pthread_create(&clockModuleThread, NULL, clockModule->StartThreadRun, clockModule);
 
 	// ~~~ MAIN LOOP ~~~ //
 	while (!interrupt_received) {
@@ -116,6 +118,7 @@ int main(int argc, char* argv[]) {
 	// TODO: Make sure you're deleting everything that needs to be deleted
 	// delete weatherModule;
 	delete clockModule;
+    delete t_clock_module;
 	delete matrix;
 
 	printf("Received CTRL-C. Exiting.\n");

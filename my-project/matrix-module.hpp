@@ -14,6 +14,8 @@ typedef struct {
 
 class MatrixModule {
 	protected:
+        t_module *t_mod;
+        
 		static int matrix_width;
 		static int matrix_height;
 
@@ -21,15 +23,17 @@ class MatrixModule {
 
 		rgb_matrix::Font font;
 
-		MatrixModule();
-		MatrixModule(rgb_matrix::RGBMatrix *m);
-        MatrixModule(rgb_matrix::RGBMatrix *m, const char *bdf_font_file);
+		MatrixModule(t_module* t_modArg);
+		MatrixModule(t_module* t_modArg, rgb_matrix::RGBMatrix *m);
+        MatrixModule(t_module* t_modArg, rgb_matrix::RGBMatrix *m, const char *bdf_font_file);
 
 	public:
 		// Initialize all necessary static member variables
 		static void InitStaticMatrixVariables(rgb_matrix::RGBMatrix *m);
 
-		virtual void Run(t_module* t_mod) = 0;
+        static void *StartThreadRun(void * context);
+
+		virtual void *Run() = 0;
 
 		virtual ~MatrixModule();
 };
