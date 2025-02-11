@@ -47,7 +47,7 @@ private:
 public:
     ClockModule(rgb_matrix::RGBMatrix* m);
 
-    rgb_matrix::FrameCanvas* UpdateCanvas();
+    void Run(t_module* t_mod);
 };
 
 #endif

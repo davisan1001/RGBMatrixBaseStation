@@ -7,6 +7,11 @@
 #include "led-matrix.h"
 #include "pixel-mapper.h"
 
+typedef struct {
+    bool update;
+    rgb_matrix::FrameCanvas *off_screen_canvas;
+} t_module;
+
 class MatrixModule {
 	protected:
 		static int matrix_width;
@@ -24,7 +29,7 @@ class MatrixModule {
 		// Initialize all necessary static member variables
 		static void InitStaticMatrixVariables(rgb_matrix::RGBMatrix *m);
 
-		virtual rgb_matrix::FrameCanvas *UpdateCanvas() = 0;
+		virtual void Run(t_module* t_mod) = 0;
 
 		virtual ~MatrixModule();
 };

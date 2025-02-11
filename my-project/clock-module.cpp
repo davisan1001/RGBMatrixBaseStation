@@ -141,25 +141,29 @@ void ClockModule::DrawDigitalClock() {
 		local_time_str.c_str(), letter_spacing);
 }
 
-rgb_matrix::FrameCanvas* ClockModule::UpdateCanvas() {
-	// Update the time seconds
-	next_time.tv_sec += 1;
+void ClockModule::Run(t_module* t_mod) {
+    while (true) { // TODO: A while true loop is definitely not the way. Fix this.
+        // Update the time seconds
+        next_time.tv_sec += 1;
 
-	// Set readable local_time from next_time.tv_sec
-	localtime_r(&next_time.tv_sec, &local_time);
+        // Set readable local_time from next_time.tv_sec
+        localtime_r(&next_time.tv_sec, &local_time);
 
-	// Draw the analog clock with the digital clock in the center.
-	DrawClock();
+        // Draw the analog clock with the digital clock in the center.
+        DrawClock();
 
-	// Wait to show the time
-	//  TODO: Maybe I should make this non blocking?
-	//  Instead of a blocking call to sleep, maybe it would be best to maintain
-    //  the main animation loop in matrix-app.cpp by checking if this time is
-    //  equal to next_time and if not, then just returning null or something.
-    //  Of course, we would have to make sure that Drawclock doesn't run unless
-    //  a new time is ready to be created. And next_time.tv_sec doesn't update
-    //  at every loop...
-	clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
+        // Wait to show the time
+        //  TODO: Maybe I should make this non blocking?
+        //  Instead of a blocking call to sleep, maybe it would be best to maintain
+        //  the main animation loop in matrix-app.cpp by checking if this time is
+        //  equal to next_time and if not, then just returning null or something.
+        //  Of course, we would have to make sure that Drawclock doesn't run unless
+        //  a new time is ready to be created. And next_time.tv_sec doesn't update
+        //  at every loop...
+        clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
 
-	return off_screen_canvas;
+        t_mod->off_screen_canvas = off_screen_canvas;
+        t_mod->update = true; // Set to true AFTER
+    }
+	return;
 }

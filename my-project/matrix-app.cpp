@@ -27,6 +27,7 @@
 #include "clock-module.hpp"
 #include "weather-station-module.hpp"
 
+const int REFRESH_RATE = 90;
 
 volatile bool interrupt_received = false;
 static void InterruptHandler(int signo) { interrupt_received = true; }
@@ -60,7 +61,7 @@ int main(int argc, char* argv[]) {
 	//    If left uncapped, graphical glitches occur. but if capped to a constant
 	//    rate, they dissapear. Also worth noting that if decreasing this value
 	//    too much, the brightness of the leds decreases.
-	matrix_options.limit_refresh_rate_hz = 90;
+	matrix_options.limit_refresh_rate_hz = REFRESH_RATE;
 	//    Increasing this value should increase the on-time of the pixels which,
 	//    theoretically (untested) would help increase the brightness when
 	//    limiting the refresh rate to lower values.
@@ -84,6 +85,9 @@ int main(int argc, char* argv[]) {
 	// Initialize the MatrixModule objects
 	//MatrixModule* weatherModule = new WeatherStation::WeatherStationModule(matrix);
 	MatrixModule* clockModule = new ClockModule(matrix);
+    t_module* t_clock_module = new t_module();
+    t_clock_module->update = false;
+    t_clock_module->off_screen_canvas = nullptr;
 
 	// Set up an interrupt handler to be able to stop animations while they go
 	// on. Each demo tests for while (!interrupt_received) {},
@@ -93,14 +97,19 @@ int main(int argc, char* argv[]) {
 
 	printf("Press <CTRL-C> to exit and reset LEDs\n");
 
+    // Run the module
+    clockModule->Run(t_clock_module);
+
 	// ~~~ MAIN LOOP ~~~ //
 	while (!interrupt_received) {
-		off_screen_canvas = clockModule->UpdateCanvas();
-        //off_screen_canvas = weatherModule->UpdateCanvas();
+        // Update the canvas only if the module has posted an update
+        if (t_clock_module->update) {
+            off_screen_canvas = matrix->SwapOnVSync(off_screen_canvas);
+            t_clock_module->update = false;
+        }
+        usleep((useconds_t)(1000000/REFRESH_RATE));
 
-        //  TODO: Depending on implementation, check if the off_screen_canvas has been set to null...
-        //      This way we know that the module had nothing to update and we can skip a call to SwapOnVSync()
-		off_screen_canvas = matrix->SwapOnVSync(off_screen_canvas);
+        // TODO: Test this new implementation. What's the cpu usage? Is it worse than 75%?
 	}
 	// ~~~ END ~~~ //
 
