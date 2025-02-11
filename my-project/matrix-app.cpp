@@ -29,6 +29,7 @@
 //#include "weather-station-module.hpp"
 
 const int REFRESH_RATE = 90;
+const int SLEEP = 1000000/80;
 
 volatile bool interrupt_received = false;
 static void InterruptHandler(int signo) { interrupt_received = true; }
@@ -104,13 +105,14 @@ int main(int argc, char* argv[]) {
 
 	// ~~~ MAIN LOOP ~~~ //
 	while (!interrupt_received) {
-        std::cout << "In Loop" << std::endl;
         // Update the canvas only if the module has posted an update
         if (t_clock_module->update) {
-            off_screen_canvas = matrix->SwapOnVSync(off_screen_canvas);
+            off_screen_canvas = matrix->SwapOnVSync(t_clock_module->off_screen_canvas);
             t_clock_module->update = false;
         }
-        usleep((useconds_t)(1000000/REFRESH_RATE));
+
+        // NOTE: Without this sleep, things are rather unstable.
+        usleep(SLEEP);
 
         // TODO: Test this new implementation. What's the cpu usage? Is it worse than 75%?
 	}

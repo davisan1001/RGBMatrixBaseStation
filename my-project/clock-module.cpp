@@ -144,7 +144,6 @@ void ClockModule::DrawDigitalClock() {
 
 void *ClockModule::Run() {
     while (true) { // TODO: A while true loop is definitely not the way. Fix this.
-        std::cout << "Clock Module is Running" << std::endl;
         // Update the time seconds
         next_time.tv_sec += 1;
 
