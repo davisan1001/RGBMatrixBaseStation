@@ -104,6 +104,7 @@ int main(int argc, char* argv[]) {
 
 	// ~~~ MAIN LOOP ~~~ //
 	while (!interrupt_received) {
+        std::cout << "In Loop" << std::endl;
         // Update the canvas only if the module has posted an update
         if (t_clock_module->update) {
             off_screen_canvas = matrix->SwapOnVSync(off_screen_canvas);
