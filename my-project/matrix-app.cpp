@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 	MatrixModule::InitStaticMatrixVariables(matrix);
 
 	// Initialize the MatrixModule objects
-	MatrixModule *weatherModule = new WeatherStationModule(matrix);
+	//MatrixModule* weatherModule = new WeatherStation::WeatherStationModule(matrix);
 	MatrixModule* clockModule = new ClockModule(matrix);
 
 	// Set up an interrupt handler to be able to stop animations while they go
@@ -95,8 +95,8 @@ int main(int argc, char* argv[]) {
 
 	// ~~~ MAIN LOOP ~~~ //
 	while (!interrupt_received) {
-		//off_screen_canvas = clockModule->UpdateCanvas();
-        off_screen_canvas = weatherModule->UpdateCanvas();
+		off_screen_canvas = clockModule->UpdateCanvas();
+        //off_screen_canvas = weatherModule->UpdateCanvas();
 
         //  TODO: Depending on implementation, check if the off_screen_canvas has been set to null...
         //      This way we know that the module had nothing to update and we can skip a call to SwapOnVSync()
