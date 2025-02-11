@@ -1,10 +1,17 @@
 #include "matrix-module.hpp"
 
+using namespace Matrix;
+
 int MatrixModule::matrix_width;
 int MatrixModule::matrix_height;
 
 MatrixModule::MatrixModule(t_module* t_modArg) {
     t_mod = t_modArg;
+
+    // Setup default t_module values
+    t_mod->status = LOADING;
+    t_mod->update = false;
+    t_mod->off_screen_canvas = nullptr;
 }
 
 MatrixModule::MatrixModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m) : MatrixModule::MatrixModule(t_modArg) {
@@ -52,11 +59,13 @@ MatrixModule::MatrixModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m, const c
 
 MatrixModule::~MatrixModule() {}
 
+
+// Static Method Definitions
 void MatrixModule::InitStaticMatrixVariables(rgb_matrix::RGBMatrix* m) {
 	MatrixModule::matrix_width = m->width();
 	MatrixModule::matrix_height = m->height();
 }
 
-void *MatrixModule::StartThreadRun(void * context) {
-    return ((MatrixModule*)context)->Run();
+void *MatrixModule::Run(void * context) {
+    return ((MatrixModule*)context)->Main();
 }

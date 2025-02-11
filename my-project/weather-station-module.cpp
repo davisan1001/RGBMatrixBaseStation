@@ -7,11 +7,12 @@
 #include "pugixml.hpp"
 
 using namespace std;
+using namespace Matrix;
 using namespace WeatherStation;
 
 string weatherTypeString[12] = { "SUN", "PARTLY_CLOUDY", "MOSTLY_CLOUDY", "LIGHT_FLURRIES", "SNOW", "CLOUD", "LIGHT_RAIN", "RAIN", "FREEZING_RAIN", "RAIN_SNOW", "THUNDERSHOWERS", "UNKNOWN" };
 
-WeatherStationModule::WeatherStationModule(rgb_matrix::RGBMatrix *m) : MatrixModule(m) {
+WeatherStationModule::WeatherStationModule(t_module* t_modArg, rgb_matrix::RGBMatrix *m) : MatrixModule(t_modArg, m) {
 	// Setup default colors
 	seperator_color = rgb_matrix::Color(84, 84, 84);
 	temp_high_color = rgb_matrix::Color(255, 126, 0);
@@ -335,10 +336,12 @@ void WeatherStationModule::DrawPredictedDailyForecastData() {
     return;
 }
 
-rgb_matrix::FrameCanvas* WeatherStationModule::UpdateCanvas() {
+void* WeatherStationModule::Main() {
     // TODO:
     // 1. Fetch weather data (and handle errors).
     //      - Make sure to only fetch the weather data every 15 minutes (or at specific times of the day).
     // 2. Draw canvas based on updated weather struct.
-    return nullptr;
+
+    // TODO: Need to enter
+    pthread_exit(NULL);
 }

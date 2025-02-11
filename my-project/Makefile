@@ -1,7 +1,7 @@
 CFLAGS = -Wall -O3 -g -Wextra -Wno-unused-parameter -std=c++20
 CXXFLAGS = $(CFLAGS)
 
-SOURCES = matrix-app.c matrix-module.c clock-module.c pugixml.c
+SOURCES = matrix-app.c matrix-module.c clock-module.c weather-station-module.c pugixml.c
 OBJECTS = $(SOURCES:.c=.o)
 TARGET = matrix-app
 

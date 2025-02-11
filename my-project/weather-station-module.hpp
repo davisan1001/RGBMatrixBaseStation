@@ -5,6 +5,8 @@
 
 #include <string>
 
+using namespace Matrix;
+
 namespace WeatherStation {
 
     typedef enum {
@@ -101,9 +103,11 @@ namespace WeatherStation {
 
         void DrawPredictedDailyForecastData(); // TODO: Implement this
 
+        // Main Method
+        void* Main(); // TODO: Implement this
+
     public:
-        WeatherStationModule(rgb_matrix::RGBMatrix* m);
-        rgb_matrix::FrameCanvas* UpdateCanvas(); // TODO: Implement this
+        WeatherStationModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m);
     };
 
 } // namespace WeatherStation 

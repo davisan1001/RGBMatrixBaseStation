@@ -2,40 +2,58 @@
 #define MATRIX_MODULE_H
 
 #include <iostream>
+#include <pthread.h>
 
 #include "graphics.h"
 #include "led-matrix.h"
 #include "pixel-mapper.h"
 
-typedef struct {
-    bool update;
-    rgb_matrix::FrameCanvas *off_screen_canvas;
-} t_module;
+namespace Matrix {
+    typedef enum {
+        ACTIVE,
+        INACTIVE
+    } ModuleState;
 
-class MatrixModule {
-	protected:
-        t_module *t_mod;
-        
-		static int matrix_width;
-		static int matrix_height;
+    typedef enum {
+        LOADING,
+        OKAY,
+        ERROR
+    } ModuleStatus;
 
-		rgb_matrix::FrameCanvas *off_screen_canvas; // TODO: Should each matrix module draw to the same off_screen_canvas? (i.e. make this static?)
+    typedef struct {
+        ModuleState state;      // Used to communicate state to the module.
+        ModuleStatus status;    // Used for the module to communicate its status.
 
-		rgb_matrix::Font font;
+        bool update;            // Shared bool to track if off_screen_canvas was updated.
+        rgb_matrix::FrameCanvas* off_screen_canvas;
+    } t_module;
 
-		MatrixModule(t_module* t_modArg);
-		MatrixModule(t_module* t_modArg, rgb_matrix::RGBMatrix *m);
-        MatrixModule(t_module* t_modArg, rgb_matrix::RGBMatrix *m, const char *bdf_font_file);
+    class MatrixModule {
+    protected:
+        t_module* t_mod;
 
-	public:
-		// Initialize all necessary static member variables
-		static void InitStaticMatrixVariables(rgb_matrix::RGBMatrix *m);
+        static int matrix_width;
+        static int matrix_height;
 
-        static void *StartThreadRun(void * context);
+        rgb_matrix::FrameCanvas* off_screen_canvas; // TODO: Should each matrix module draw to the same off_screen_canvas? (i.e. make this static?)
 
-		virtual void *Run() = 0;
+        rgb_matrix::Font font;
 
-		virtual ~MatrixModule();
-};
+        MatrixModule(t_module* t_modArg);
+        MatrixModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m);
+        MatrixModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m, const char* bdf_font_file);
+
+        virtual void* Main() = 0;
+
+    public:
+        // Initialize all necessary static member variables
+        static void InitStaticMatrixVariables(rgb_matrix::RGBMatrix* m);
+
+        static void* Run(void* context);
+
+        virtual ~MatrixModule();
+    };
+
+} // namespace MatrixModule
 
 #endif

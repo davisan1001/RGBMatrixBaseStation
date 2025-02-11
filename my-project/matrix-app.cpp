@@ -2,6 +2,7 @@
 //        sliding where potentially 2 MatrixModules will be displayed
 //        simultaneously for a few seconds as one slides to replace the first...
 //        Doing this may require a redesign...
+// TODO: Clean up all these includes. I don't think I need even half of what's here.
 #include <assert.h>
 #include <getopt.h>
 #include <limits.h>
@@ -9,24 +10,23 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include <algorithm>
 #include <iostream>  // Need (Used for debugging)
-// #include <chrono>     // Need [for clock]
 #include <cmath>  // Need [for angle calculations]
 #include <ctime>  // Need [for clock]
 #include <numbers>
 #include <sstream>    // Need [for string manipulation]
 #include <stdexcept>  // Need [for throwing exceptions]
 #include <string>     // Need [for strings]
-#include <thread>
 
 //#include "graphics.h"
 //#include "led-matrix.h"
 //#include "pixel-mapper.h"
 #include "matrix-module.hpp"
 #include "clock-module.hpp"
-//#include "weather-station-module.hpp"
+#include "weather-station-module.hpp"
 
 const int REFRESH_RATE = 90;
 const int SLEEP = 1000000/80;
@@ -79,17 +79,20 @@ int main(int argc, char* argv[]) {
 	RGBMatrix* matrix = RGBMatrix::CreateFromOptions(matrix_options, runtime_opt);
 	if (matrix == NULL) return 1;
 
-	FrameCanvas* off_screen_canvas = matrix->CreateFrameCanvas();
+    // TODO: Is this off_screen_canvas necessary?
+	//FrameCanvas* off_screen_canvas = matrix->CreateFrameCanvas();
 
 	// Initialize MatrixModule static variables
 	MatrixModule::InitStaticMatrixVariables(matrix);
 
 	// Initialize the MatrixModule objects
-	//MatrixModule* weatherModule = new WeatherStation::WeatherStationModule(matrix);
+    t_module* t_weather_module = new t_module();
+	MatrixModule* weatherModule = new WeatherStation::WeatherStationModule(t_weather_module, matrix);
+    t_weather_module->state = INACTIVE;
+    
     t_module* t_clock_module = new t_module();
 	MatrixModule* clockModule = new ClockModule(t_clock_module, matrix);
-    t_clock_module->update = false;
-    t_clock_module->off_screen_canvas = nullptr;
+    t_clock_module->state = ACTIVE;
 
 	// Set up an interrupt handler to be able to stop animations while they go
 	// on. Each demo tests for while (!interrupt_received) {},
@@ -99,22 +102,24 @@ int main(int argc, char* argv[]) {
 
 	printf("Press <CTRL-C> to exit and reset LEDs\n");
 
-    // Run the module thread
+    // Run the module threads
     pthread_t clockModuleThread;
-    pthread_create(&clockModuleThread, NULL, MatrixModule::StartThreadRun, clockModule);
+    pthread_create(&clockModuleThread, NULL, MatrixModule::Run, clockModule);
+    // TODO: Uncomment the below when ready to run the weather module...
+    //pthread_t weatherModuleThread;
+    //pthread_create(&weatherModuleThread, NULL, MatrixModule::Run, weatherModule);
 
 	// ~~~ MAIN LOOP ~~~ //
 	while (!interrupt_received) {
         // Update the canvas only if the module has posted an update
         if (t_clock_module->update) {
-            off_screen_canvas = matrix->SwapOnVSync(t_clock_module->off_screen_canvas);
+            // TODO: local off_screen_canvas necessary?
+            /*off_screen_canvas = */matrix->SwapOnVSync(t_clock_module->off_screen_canvas);
             t_clock_module->update = false;
         }
 
         // NOTE: Without this sleep, things are rather unstable.
         usleep(SLEEP);
-
-        // TODO: Test this new implementation. What's the cpu usage? Is it worse than 75%?
 	}
 	// ~~~ END ~~~ //
 
@@ -122,6 +127,8 @@ int main(int argc, char* argv[]) {
 	// delete weatherModule;
 	delete clockModule;
     delete t_clock_module;
+    delete weatherModule;
+    delete t_weather_module;
 	delete matrix;
 
 	printf("Received CTRL-C. Exiting.\n");

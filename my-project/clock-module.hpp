@@ -4,6 +4,8 @@
 #include "matrix-module.hpp"
 #include "clock-module-images.hpp"
 
+using namespace Matrix;
+
 // Simple analog/digital clock
 class ClockModule : public MatrixModule {
 private:
@@ -44,10 +46,10 @@ private:
 
     void DrawDigitalClock();
 
+    void *Main();
+
 public:
     ClockModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m);
-
-    void *Run();
 };
 
 #endif
