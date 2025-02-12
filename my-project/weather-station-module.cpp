@@ -28,7 +28,25 @@ WeatherStationModule::WeatherStationModule(t_module* t_modArg, rgb_matrix::RGBMa
 	temp_predicted_high_color = rgb_matrix::Color(
 		120, 120, 120);  // Grey (consider changing for visibility);
 
-	// TODO: Setup current temp font
+	// Setup current temp font
+	const char* bdf_font_file = "../fonts/8x13B.bdf"; // TODO: This should be setable for each matrix module.
+
+	if (bdf_font_file == NULL) {
+		std::string errMsg = std::string("Unrecognized font file\n");
+		std::cerr << errMsg.c_str();
+		throw std::invalid_argument(errMsg);
+	}
+
+	// Load font. This needs to be a filename with a bdf bitmap font.
+	if (!current_temp_font.LoadFont(bdf_font_file)) {
+		std::string errMsg =
+			std::string("Couldn't load font \'") + bdf_font_file + "\'\n";
+		std::cerr << errMsg.c_str();
+		throw std::invalid_argument(errMsg);
+	}
+
+    // Setup the Weather data storage struct
+    weather = Weather();
 }
 
 // Weather Functions
@@ -321,6 +339,7 @@ void WeatherStationModule::ParseWeatherXMLData()
 
 // Draw Methods
 void WeatherStationModule::DrawSeperatorLines() {
+    rgb_matrix::DrawLine(off_screen_canvas, 0, 9, matrix_width, 9, clock_color);
     return;
 }
 
@@ -336,11 +355,38 @@ void WeatherStationModule::DrawPredictedDailyForecastData() {
     return;
 }
 
+void WeatherStationModule::DrawWeatherStationCanvas() {
+    DrawSeperatorLines();
+    //DrawCurrentDateTime();
+    //DrawCurrentDayWeatherData();
+    return;
+}
+
 void* WeatherStationModule::Main() {
     // TODO:
     // 1. Fetch weather data (and handle errors).
     //      - Make sure to only fetch the weather data every 15 minutes (or at specific times of the day).
     // 2. Draw canvas based on updated weather struct.
+
+
+    // TODO: Doing this outside of a loop for now, for proof of concept purposes.
+    FetchWeatherCanData();
+    // TODO: Handle errors
+
+    ParseWeatherXMLData();
+    // TODO: Handle errors
+
+    
+
+    // Update canvas to new time.
+    t_mod->off_screen_canvas = off_screen_canvas;
+    t_mod->update = true; // Set to true AFTER (to avoid RBW (Read Before Write) issues).
+
+
+
+    while (t_mod->state != EXIT) {
+        // TODO: Do nothing for now
+    }
 
     // TODO: Need to enter
     pthread_exit(NULL);

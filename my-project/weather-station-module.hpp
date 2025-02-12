@@ -75,6 +75,8 @@ namespace WeatherStation {
         // different ones and see which you like best.
         rgb_matrix::Font current_temp_font;
 
+        // Everything else can use the default font
+
         // TODO: There is another server that serves the same information. If this one returns an error, try again with the other one.
         // TODO: Need to handle errors... I think the weatherCAN site goes down often... It's certainly not reliable.
         std::string weatherCanadaStationCode = "s0000439";
@@ -82,7 +84,9 @@ namespace WeatherStation {
         std::string weatherDataFile = "weatherData.xml";
         std::string weatherArchivedDataFile = "weatherDataArchive.xml";
 
+        // Hold the weather data
         Weather weather;
+
 
         // Weather Functions
         WeatherType extractWeatherType(int iconCode, std::string textSummary);
@@ -90,7 +94,7 @@ namespace WeatherStation {
         // Weather Fetch Functions
         void FetchWeatherCanData();
 
-        WeatherDay FetchArchivedForecast(); // TODO: Rename
+        WeatherDay FetchArchivedForecast();
 
         void ParseWeatherXMLData();
 
@@ -102,6 +106,8 @@ namespace WeatherStation {
         void DrawCurrentDayWeatherData(); // TODO: Implement this
 
         void DrawPredictedDailyForecastData(); // TODO: Implement this
+
+        void DrawWeatherStationCanvas(); // Main draw function
 
         // Main Method
         void* Main(); // TODO: Implement this

@@ -11,7 +11,8 @@
 namespace Matrix {
     typedef enum {
         ACTIVE,
-        INACTIVE
+        INACTIVE,
+        EXIT
     } ModuleState;
 
     typedef enum {
