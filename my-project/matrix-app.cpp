@@ -109,6 +109,9 @@ int main(int argc, char* argv[]) {
     //pthread_t weatherModuleThread;
     //pthread_create(&weatherModuleThread, NULL, MatrixModule::Run, weatherModule);
 
+    // TODO: Find a way to succesfully suspend execution of a module when it's inactive.
+    //          I think a good way to do this might be to use std::conditional_value
+
 	// ~~~ MAIN LOOP ~~~ //
 	while (!interrupt_received) {
         // Update the canvas only if the module has posted an update
