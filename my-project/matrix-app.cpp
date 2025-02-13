@@ -29,7 +29,7 @@
 #include "weather-station-module.hpp"
 
 const int REFRESH_RATE = 90;
-const int SLEEP = 1000000/80;
+const int SLEEP = 1000000/60; // Slightly longer wait for increased stability
 
 volatile bool interrupt_received = false;
 static void InterruptHandler(int signo) { interrupt_received = true; }
