@@ -525,25 +525,23 @@ void WeatherStationModule::DrawCurrentDayWeatherData() {
     // Draw current temp
     string currentTemp = std::to_string((int)std::round(weather.currentConditions.tempCur));
     currentTemp += "°";
-    currentTemp = "00°"; // TODO: Testing
-    std::cout << "Current Temp Len: " << currentTemp.length() << std::endl; // TODO: TESTING
-    if (currentTemp.length() < 3) { // If there are less than 2 characters
+    if (currentTemp.length() <= 3) { // If there are 2 characters or less (degree character takes 2 bytes)
         rgb_matrix::DrawText(
             off_screen_canvas, current_temp_font, 44, 13 + current_temp_font.baseline(), temp_cur_color, NULL, currentTemp.c_str(), letter_spacing);
     } else {
         rgb_matrix::DrawText(
-            off_screen_canvas, current_temp_font, 38, 13 + current_temp_font.baseline(), temp_cur_color, NULL, currentTemp.c_str(), letter_spacing);
+            off_screen_canvas, current_temp_font, 39, 13 + current_temp_font.baseline(), temp_cur_color, NULL, currentTemp.c_str(), letter_spacing);
     }
 
     // Draw high temp
     string highTemp = std::to_string((int)std::round(weather.currentConditions.tempHigh));
     highTemp += "°";
-    if (highTemp.length() <= 3) { // If there are 2 characters or less
+    if (highTemp.length() <= 3) { // If there are 2 characters or less (degree character takes 2 bytes)
         rgb_matrix::DrawText(
-            off_screen_canvas, font, 41, 29 + font.baseline(), temp_high_color, NULL, highTemp.c_str(), letter_spacing);
+            off_screen_canvas, font, 40, 29 + font.baseline(), temp_high_color, NULL, highTemp.c_str(), letter_spacing);
     } else {
         rgb_matrix::DrawText(
-            off_screen_canvas, font, 35, 29 + font.baseline(), temp_high_color, NULL, highTemp.c_str(), letter_spacing);
+            off_screen_canvas, font, 36, 29 + font.baseline(), temp_high_color, NULL, highTemp.c_str(), letter_spacing);
     }
     
 
@@ -574,7 +572,7 @@ void WeatherStationModule::DrawPredictedDailyForecastData() {
 
         // Draw temp high
         string highTemp = std::to_string((int)std::round(weather.forecast[i].tempHigh));
-        if(highTemp.length() < 3) { // If there are less than 2 characters
+        if(highTemp.length() < 2) { // If there are less than 2 characters
             rgb_matrix::DrawText(
                 off_screen_canvas, font, 5 + (offset*i), 53 + font.baseline(), temp_predicted_high_color, NULL, highTemp.c_str(), letter_spacing);
         } else {
