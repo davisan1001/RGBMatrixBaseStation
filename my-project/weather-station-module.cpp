@@ -403,14 +403,14 @@ const uint8_t* WeatherStationModule::GetLargeImageByType(WeatherType type) {
         break;
     case FREEZING_RAIN:
     case RAIN_SNOW:
-        return matrix_weather_images::small_error_icon;
+        return matrix_weather_images::large_error_icon;
         break;
     case THUNDERSHOWERS:
         return matrix_weather_images::large_thunder_showers_icon_option1;
         break;
     case UNKNOWN:
     default:
-        return matrix_weather_images::small_error_icon;
+        return matrix_weather_images::large_error_icon;
         break;
     }
 }
@@ -535,8 +535,13 @@ void WeatherStationModule::DrawCurrentDayWeatherData() {
     // Draw high temp
     string highTemp = std::to_string((int)std::round(weather.currentConditions.tempHigh));
     highTemp += "°";
-    rgb_matrix::DrawText(
-        off_screen_canvas, font, 36, 29 + font.baseline(), temp_high_color, NULL, highTemp.c_str(), letter_spacing);
+    if (currentTemp.length() < 3) {
+        rgb_matrix::DrawText(
+            off_screen_canvas, font, 38, 29 + font.baseline(), temp_high_color, NULL, highTemp.c_str(), letter_spacing);
+    } else {
+        rgb_matrix::DrawText(
+            off_screen_canvas, font, 35, 29 + font.baseline(), temp_high_color, NULL, highTemp.c_str(), letter_spacing);
+    }
     
 
     // Draw windchill
@@ -584,6 +589,7 @@ void WeatherStationModule::DrawWeatherStationCanvas(bool dateTimeOnly) {
     DrawSeperatorLines();
     DrawCurrentDateTime();
     DrawCurrentDayWeatherData();
+    DrawPredictedDailyForecastData();
     return;
 }
 
