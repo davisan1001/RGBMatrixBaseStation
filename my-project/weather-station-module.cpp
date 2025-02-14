@@ -525,6 +525,7 @@ void WeatherStationModule::DrawCurrentDayWeatherData() {
     // Draw current temp
     string currentTemp = std::to_string((int)std::round(weather.currentConditions.tempCur));
     currentTemp += "°";
+    std::cout << "Current Temp Len: " << currentTemp.length() << std::endl; // TODO: TESTING
     if (currentTemp.length() < 3) { // Only one digit for the temp, must change center
         rgb_matrix::DrawText(
             off_screen_canvas, current_temp_font, 44, 13 + current_temp_font.baseline(), temp_cur_color, NULL, currentTemp.c_str(), letter_spacing);
@@ -536,7 +537,7 @@ void WeatherStationModule::DrawCurrentDayWeatherData() {
     // Draw high temp
     string highTemp = std::to_string((int)std::round(weather.currentConditions.tempHigh));
     highTemp += "°";
-    std::cout << highTemp.length() << std::endl;
+    std::cout << "High Temp Len: " << highTemp.length() << std::endl; // TODO: TESTING
     if (highTemp.length() < 3) { // TODO: Fix this
         rgb_matrix::DrawText(
             off_screen_canvas, font, 41, 29 + font.baseline(), temp_cur_color, NULL, highTemp.c_str(), letter_spacing); // TODO: TESTING PURPOSES Coolor change
@@ -586,7 +587,7 @@ void WeatherStationModule::DrawPredictedDailyForecastData() {
         if (weather.forecast[i].pop > 0) {
             string pop = std::to_string(weather.forecast[i].pop);
             rgb_matrix::DrawText(
-                off_screen_canvas, font, 3 + (offset*i), 59 + font.baseline(), temp_predicted_high_color, NULL, string(pop + "%").c_str(), letter_spacing);
+                off_screen_canvas, font, 2 + (offset*i), 59 + font.baseline(), temp_predicted_high_color, NULL, string(pop + "%").c_str(), letter_spacing);
         }
     }
     
