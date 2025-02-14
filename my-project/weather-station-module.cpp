@@ -537,7 +537,7 @@ void WeatherStationModule::DrawCurrentDayWeatherData() {
     highTemp += "°";
     if (highTemp.length() < 3) {
         rgb_matrix::DrawText(
-            off_screen_canvas, font, 38, 29 + font.baseline(), temp_high_color, NULL, highTemp.c_str(), letter_spacing);
+            off_screen_canvas, font, 41, 29 + font.baseline(), temp_cur_color, NULL, highTemp.c_str(), letter_spacing); // TODO: TESTING PURPOSES Coolor change
     } else {
         rgb_matrix::DrawText(
             off_screen_canvas, font, 35, 29 + font.baseline(), temp_high_color, NULL, highTemp.c_str(), letter_spacing);
@@ -562,20 +562,28 @@ void WeatherStationModule::DrawPredictedDailyForecastData() {
         
         // Draw weather icon
         rgb_matrix::SetImage(off_screen_canvas, 3 + (offset*i), 44,
-            GetSmallImageByType(weather.currentConditions.type),
+            GetSmallImageByType(weather.forecast[i].type),
             matrix_weather_images::small_weather_icon_size,
             matrix_weather_images::small_weather_icon_width,
             matrix_weather_images::small_weather_icon_height, false);
 
         // Draw temp high
         string highTemp = std::to_string((int)std::round(weather.forecast[i].tempHigh));
-        rgb_matrix::DrawText(
-            off_screen_canvas, font, 3 + (offset*i), 53 + font.baseline(), temp_predicted_high_color, NULL, highTemp.c_str(), letter_spacing);
+        highTemp = "0"; // TODO: TESTING PURPOSES
+        if(highTemp.length() < 2) {
+            rgb_matrix::DrawText(
+                off_screen_canvas, font, 5 + (offset*i), 53 + font.baseline(), temp_predicted_high_color, NULL, highTemp.c_str(), letter_spacing);
+        } else {
+            rgb_matrix::DrawText(
+                off_screen_canvas, font, 3 + (offset*i), 53 + font.baseline(), temp_predicted_high_color, NULL, highTemp.c_str(), letter_spacing);
+        }
 
-        // Draw POP
-        string pop = std::to_string(weather.forecast[i].pop);
-        rgb_matrix::DrawText(
-            off_screen_canvas, font, 3 + (offset*i), 59 + font.baseline(), temp_predicted_high_color, NULL, pop.c_str(), letter_spacing);
+        // Draw POP (if it exists)
+        if (weather.forecast[i].pop > 0) {
+            string pop = std::to_string(weather.forecast[i].pop);
+            rgb_matrix::DrawText(
+                off_screen_canvas, font, 3 + (offset*i), 59 + font.baseline(), temp_predicted_high_color, NULL, pop.c_str(), letter_spacing);
+        }
     }
     
     return;
