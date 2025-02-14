@@ -558,7 +558,7 @@ void WeatherStationModule::DrawPredictedDailyForecastData() {
     for (size_t i = 0; i < 4; i++) {
         // Draw weekday text
         char weekday[3] = "00";
-        for (int i = 0; weather.forecast[i].day.substr(0, 2).c_str() != '\0'; i++) {
+        for (int i = 0; weather.forecast[i].day.substr(0, 2).c_str()[i] != '\0'; i++) {
             weekday[i] = toupper(weather.forecast[i].day.substr(0, 2).c_str()[i]);
         }
         rgb_matrix::DrawText(
