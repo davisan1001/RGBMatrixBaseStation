@@ -458,6 +458,8 @@ void WeatherStationModule::DrawSeperatorLines() {
 }
 
 void WeatherStationModule::DrawCurrentDateTime() {
+    // TODO: Blank out the datetime section by drawing in black pixel values
+
     std::string month = std::to_string(local_time.tm_mon + 1);
     if (month.length() < 2) {
         month = "0" + month;
@@ -530,7 +532,7 @@ void WeatherStationModule::DrawCurrentDayWeatherData() {
             off_screen_canvas, current_temp_font, 44, 13 + current_temp_font.baseline(), temp_cur_color, NULL, currentTemp.c_str(), letter_spacing);
     } else {
         rgb_matrix::DrawText(
-            off_screen_canvas, current_temp_font, 39, 13 + current_temp_font.baseline(), temp_cur_color, NULL, currentTemp.c_str(), letter_spacing);
+            off_screen_canvas, current_temp_font, 40, 13 + current_temp_font.baseline(), temp_cur_color, NULL, currentTemp.c_str(), letter_spacing);
     }
 
     // Draw high temp
@@ -581,7 +583,6 @@ void WeatherStationModule::DrawPredictedDailyForecastData() {
         }
 
         // Draw POP (if it exists)
-        weather.forecast[i].pop = 30; // TODO: TESTING PURPOSES
         if(weather.forecast[i].pop > 0) {
             string pop = std::to_string(weather.forecast[i].pop);
             rgb_matrix::DrawText(
@@ -594,47 +595,41 @@ void WeatherStationModule::DrawPredictedDailyForecastData() {
 
 void WeatherStationModule::DrawWeatherStationCanvas(bool dateTimeOnly) {
     if (dateTimeOnly) {
+        DrawCurrentDateTime(); // Update the datetime only
+    } else {
+        off_screen_canvas->Fill(0, 0, 0);
+        DrawSeperatorLines();
         DrawCurrentDateTime();
-        return;
+        DrawCurrentDayWeatherData();
+        DrawPredictedDailyForecastData();
     }
-    // NOTE: Index is top left and starts at (0, 0)
-    DrawSeperatorLines();
-    DrawCurrentDateTime();
-    DrawCurrentDayWeatherData();
-    DrawPredictedDailyForecastData();
     return;
 }
 
 void* WeatherStationModule::Main() {
-    // TODO:
-    // 1. Fetch weather data (and handle errors).
-    //      - Make sure to only fetch the weather data every 15 minutes (or at specific times of the day).
-    // 2. Draw canvas based on updated weather struct.
 
     ParseWeatherCanXMLData();
     // TODO: Handle errors
 
-
-    // Set readable local_time from next_time.tv_sec
-    localtime_r(&next_time.tv_sec, &local_time);
-
-    // Draw the analog clock with the digital clock in the center.
-    DrawWeatherStationCanvas(false); // TODO: This redraws the whole damn canvas (not efficient). Call redraw of currentdatetime only.
-
-    // Wait to update time.
-    clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
-
-    // Update the time seconds
-    next_time.tv_sec += 15;
-
-    // Update canvas to new time.
-    t_mod->off_screen_canvas = off_screen_canvas;
-    t_mod->update = true; // Set to true AFTER (to avoid RBW (Read Before Write) issues).
-
-
-
     while (t_mod->state != EXIT) {
-        // TODO: Do nothing for now
+        // Set readable local_time from next_time.tv_sec
+        localtime_r(&next_time.tv_sec, &local_time);
+
+        // TODO: If 20 minutes have passed, re-fetch weather data & redraw weather data
+
+        // TODO: Else redraw only the time
+        // Draw the analog clock with the digital clock in the center.
+        DrawWeatherStationCanvas(true);
+
+        // Wait to update time.
+        clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
+
+        // Update the time seconds
+        next_time.tv_sec += 15;
+
+        // Update canvas to new time.
+        t_mod->off_screen_canvas = off_screen_canvas;
+        t_mod->update = true; // Set to true AFTER (to avoid RBW (Read Before Write) issues).
     }
 
     // TODO: Need to enter

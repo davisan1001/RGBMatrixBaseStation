@@ -78,7 +78,10 @@ void ClockModule::DrawClockSecHand(double second_fraction) {
 }
 
 void ClockModule::DrawClock() {
-	/* ~~ Draw ticks around the perimeter of the screen ~~ */
+    // Fill canvas blank
+    off_screen_canvas->Fill(0, 0, 0);
+
+	// Draw ticks around the perimeter of the screen
 	rgb_matrix::SetImage(off_screen_canvas, 0, 0,
 		matrix_images::analog_clock_base,
 		matrix_images::analog_clock_base_size,

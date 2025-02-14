@@ -110,6 +110,8 @@ int main(int argc, char* argv[]) {
 
 	// ~~~ MAIN LOOP ~~~ //
 	while (!interrupt_received) {
+        // TODO: Make state changes and switch back and forth between clock and weather module
+
         // Update the canvas only if the module has posted an update
         if (t_clock_module->update) {
             matrix->SwapOnVSync(t_clock_module->off_screen_canvas);
