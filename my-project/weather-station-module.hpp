@@ -62,6 +62,7 @@ namespace WeatherStation {
     private:
         int letter_spacing = 0;
         rgb_matrix::Color seperator_color;
+        rgb_matrix::Color temp_cur_color;
         rgb_matrix::Color temp_high_color;
         rgb_matrix::Color temp_low_color;
         rgb_matrix::Color clock_color;
@@ -103,6 +104,9 @@ namespace WeatherStation {
         void SetCurrentNetworkTime();
 
         // Draw Methods
+        const uint8_t* GetLargeImageByType(WeatherType type);
+        const uint8_t* GetSmallImageByType(WeatherType type);
+
         void DrawSeperatorLines();
 
         void DrawCurrentDateTime();
