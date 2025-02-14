@@ -64,7 +64,7 @@ namespace WeatherStation {
         rgb_matrix::Color seperator_color;
         rgb_matrix::Color temp_cur_color;
         rgb_matrix::Color temp_high_color;
-        rgb_matrix::Color temp_low_color;
+        rgb_matrix::Color windchill_color;
         rgb_matrix::Color clock_color;
         rgb_matrix::Color date_color;
         rgb_matrix::Color current_weekday_color;

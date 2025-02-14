@@ -19,7 +19,7 @@ WeatherStationModule::WeatherStationModule(t_module* t_modArg, rgb_matrix::RGBMa
     seperator_color = rgb_matrix::Color(84, 84, 84);
     temp_cur_color = rgb_matrix::Color(255, 255, 255);
     temp_high_color = rgb_matrix::Color(255, 126, 0);
-    temp_low_color = rgb_matrix::Color(0, 183, 239);
+    windchill_color = rgb_matrix::Color(0, 183, 239);
     clock_color = rgb_matrix::Color(255, 255, 255);
     date_color = rgb_matrix::Color(
         120, 120, 120);  // Grey (consider changing for visibility)
@@ -32,7 +32,7 @@ WeatherStationModule::WeatherStationModule(t_module* t_modArg, rgb_matrix::RGBMa
         120, 120, 120);  // Grey (consider changing for visibility);
 
     // Setup current temp font
-    const char* bdf_font_file = "../fonts/8x13O.bdf"; // TODO: This should be setable for each matrix module.
+    const char* bdf_font_file = "../fonts/8x13_custom.bdf";
 
     if (bdf_font_file == NULL) {
         std::string errMsg = std::string("Unrecognized font file\n");
@@ -332,9 +332,10 @@ void WeatherStationModule::ParseWeatherCanXMLData() {
     else {
         // If today's forecast data is already stored then keep it...
         if (weather.currentConditions.type == UNKNOWN) {
-            // TODO IMPORTANT: Change the way this archived weather fetch works
             // If no forecast data was gathered for today,
             // fetch today's archived data to get this information.
+            // TODO IMPORTANT: Implement archived fetch
+            /*
             try {
                 weather.currentConditions = FetchArchivedForecast();
             }
@@ -342,6 +343,7 @@ void WeatherStationModule::ParseWeatherCanXMLData() {
                 std::cerr << e.what() << '\n';
                 // TODO: Handle what to do if the archived forecast could not be successfully fetched.
             }
+            */
         }
     }
 
@@ -450,6 +452,7 @@ const uint8_t* WeatherStationModule::GetSmallImageByType(WeatherType type) {
 void WeatherStationModule::DrawSeperatorLines() {
     rgb_matrix::DrawLine(off_screen_canvas, 0, 9, matrix_width, 9, seperator_color);
     rgb_matrix::DrawLine(off_screen_canvas, 0, 36, matrix_width, 36, seperator_color);
+    rgb_matrix::DrawLine(off_screen_canvas, 47, 29, 47, 33, seperator_color);
     return;
 }
 
@@ -532,17 +535,43 @@ void WeatherStationModule::DrawCurrentDayWeatherData() {
     // Draw high temp
     string highTemp = std::to_string((int)std::round(weather.currentConditions.tempHigh));
     highTemp += "°";
-    if (highTemp.length() < 3) {
-        rgb_matrix::DrawText(
-            off_screen_canvas, font, 46, 30 + font.baseline(), temp_high_color, NULL, currentTemp.c_str(), letter_spacing);
-    } else {
-        rgb_matrix::DrawText(
-            off_screen_canvas, font, 43, 30 + font.baseline(), temp_high_color, NULL, currentTemp.c_str(), letter_spacing);
-    }
+    rgb_matrix::DrawText(
+        off_screen_canvas, font, 36, 29 + font.baseline(), temp_high_color, NULL, highTemp.c_str(), letter_spacing);
+    
+
+    // Draw windchill
+    string windChill = std::to_string((int)std::round(weather.currentConditions.windChill));
+    windChill += "°";
+    rgb_matrix::DrawText(
+        off_screen_canvas, font, 50, 29 + font.baseline(), windchill_color, NULL, windChill.c_str(), letter_spacing);
+
     return;
 }
 
 void WeatherStationModule::DrawPredictedDailyForecastData() {
+    for (size_t i = 0; i < 4; i++) {
+        // Draw weekday text
+        rgb_matrix::DrawText(
+            off_screen_canvas, font, 2, 38 + font.baseline(), future_weekday_color, NULL, weather.forecast[i].day.substr(0, 2).c_str(), letter_spacing);
+        
+        // Draw weather icon
+        rgb_matrix::SetImage(off_screen_canvas, 3, 44,
+            GetSmallImageByType(weather.currentConditions.type),
+            matrix_weather_images::small_weather_icon_size,
+            matrix_weather_images::small_weather_icon_width,
+            matrix_weather_images::small_weather_icon_height, false);
+
+        // Draw temp high
+        string highTemp = std::to_string((int)std::round(weather.forecast[i].tempHigh));
+        rgb_matrix::DrawText(
+            off_screen_canvas, font, 3, 53 + font.baseline(), temp_predicted_high_color, NULL, highTemp.c_str(), letter_spacing);
+
+        // Draw POP
+        string pop = std::to_string(weather.forecast[i].pop);
+        rgb_matrix::DrawText(
+            off_screen_canvas, font, 3, 59 + font.baseline(), temp_predicted_high_color, NULL, pop.c_str(), letter_spacing);
+    }
+    
     return;
 }
 
