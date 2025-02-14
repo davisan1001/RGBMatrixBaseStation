@@ -32,7 +32,7 @@ WeatherStationModule::WeatherStationModule(t_module* t_modArg, rgb_matrix::RGBMa
         120, 120, 120);  // Grey (consider changing for visibility);
 
     // Setup current temp font
-    const char* bdf_font_file = "../fonts/8x13B.bdf"; // TODO: This should be setable for each matrix module.
+    const char* bdf_font_file = "../fonts/8x13O.bdf"; // TODO: This should be setable for each matrix module.
 
     if (bdf_font_file == NULL) {
         std::string errMsg = std::string("Unrecognized font file\n");
@@ -512,7 +512,7 @@ void WeatherStationModule::DrawCurrentDateTime() {
 
 void WeatherStationModule::DrawCurrentDayWeatherData() {
     // Draw weather icon
-    rgb_matrix::SetImage(off_screen_canvas, 4, 12,
+    rgb_matrix::SetImage(off_screen_canvas, 4, 13,
         GetLargeImageByType(weather.currentConditions.type),
         matrix_weather_images::large_weather_icon_size,
         matrix_weather_images::large_weather_icon_width,
@@ -520,15 +520,25 @@ void WeatherStationModule::DrawCurrentDayWeatherData() {
 
     // Draw current temp
     string currentTemp = std::to_string((int)std::round(weather.currentConditions.tempCur));
-    currentTemp += "°"; // TODO: Will this work?
-    rgb_matrix::DrawText(
-        off_screen_canvas, current_temp_font, 38, 13 + current_temp_font.baseline(), temp_cur_color, NULL, currentTemp.c_str(), letter_spacing);
+    currentTemp += "°";
+    if (currentTemp.length() < 3) { // Only one digit for the temp, must change center
+        rgb_matrix::DrawText(
+            off_screen_canvas, current_temp_font, 44, 13 + current_temp_font.baseline(), temp_cur_color, NULL, currentTemp.c_str(), letter_spacing);
+    } else {
+        rgb_matrix::DrawText(
+            off_screen_canvas, current_temp_font, 38, 13 + current_temp_font.baseline(), temp_cur_color, NULL, currentTemp.c_str(), letter_spacing);
+    }
 
     // Draw high temp
     string highTemp = std::to_string((int)std::round(weather.currentConditions.tempHigh));
-    highTemp += "°"; // TODO: Will this work?
-    rgb_matrix::DrawText(
-        off_screen_canvas, font, 43, 30 + font.baseline(), temp_high_color, NULL, currentTemp.c_str(), letter_spacing);
+    highTemp += "°";
+    if (highTemp.length() < 3) {
+        rgb_matrix::DrawText(
+            off_screen_canvas, font, 46, 30 + font.baseline(), temp_high_color, NULL, currentTemp.c_str(), letter_spacing);
+    } else {
+        rgb_matrix::DrawText(
+            off_screen_canvas, font, 43, 30 + font.baseline(), temp_high_color, NULL, currentTemp.c_str(), letter_spacing);
+    }
     return;
 }
 
