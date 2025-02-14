@@ -92,7 +92,7 @@ namespace WeatherStation {
         WeatherType extractWeatherType(int iconCode, std::string textSummary);
 
         // Weather Fetch Functions
-        size_t CurlWriteCallback(void* contents, size_t size, size_t nmemb, std::string* output);
+        static size_t CurlWriteCallback(void* contents, size_t size, size_t nmemb, std::string* output);
         std::string FetchData(std::string& url);
 
         WeatherDay FetchArchivedForecast();
