@@ -535,7 +535,7 @@ void WeatherStationModule::DrawCurrentDayWeatherData() {
     // Draw high temp
     string highTemp = std::to_string((int)std::round(weather.currentConditions.tempHigh));
     highTemp += "°";
-    if (currentTemp.length() < 3) {
+    if (highTemp.length() < 3) {
         rgb_matrix::DrawText(
             off_screen_canvas, font, 38, 29 + font.baseline(), temp_high_color, NULL, highTemp.c_str(), letter_spacing);
     } else {
@@ -554,13 +554,14 @@ void WeatherStationModule::DrawCurrentDayWeatherData() {
 }
 
 void WeatherStationModule::DrawPredictedDailyForecastData() {
+    int offset = 17; 
     for (size_t i = 0; i < 4; i++) {
         // Draw weekday text
         rgb_matrix::DrawText(
-            off_screen_canvas, font, 2, 38 + font.baseline(), future_weekday_color, NULL, weather.forecast[i].day.substr(0, 2).c_str(), letter_spacing);
+            off_screen_canvas, font, 2 + (offset*i), 38 + font.baseline(), future_weekday_color, NULL, weather.forecast[i].day.substr(0, 2).c_str(), letter_spacing);
         
         // Draw weather icon
-        rgb_matrix::SetImage(off_screen_canvas, 3, 44,
+        rgb_matrix::SetImage(off_screen_canvas, 3 + (offset*i), 44,
             GetSmallImageByType(weather.currentConditions.type),
             matrix_weather_images::small_weather_icon_size,
             matrix_weather_images::small_weather_icon_width,
@@ -569,12 +570,12 @@ void WeatherStationModule::DrawPredictedDailyForecastData() {
         // Draw temp high
         string highTemp = std::to_string((int)std::round(weather.forecast[i].tempHigh));
         rgb_matrix::DrawText(
-            off_screen_canvas, font, 3, 53 + font.baseline(), temp_predicted_high_color, NULL, highTemp.c_str(), letter_spacing);
+            off_screen_canvas, font, 3 + (offset*i), 53 + font.baseline(), temp_predicted_high_color, NULL, highTemp.c_str(), letter_spacing);
 
         // Draw POP
         string pop = std::to_string(weather.forecast[i].pop);
         rgb_matrix::DrawText(
-            off_screen_canvas, font, 3, 59 + font.baseline(), temp_predicted_high_color, NULL, pop.c_str(), letter_spacing);
+            off_screen_canvas, font, 3 + (offset*i), 59 + font.baseline(), temp_predicted_high_color, NULL, pop.c_str(), letter_spacing);
     }
     
     return;
