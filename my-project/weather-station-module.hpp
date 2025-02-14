@@ -74,8 +74,11 @@ namespace WeatherStation {
         // 7-8 x 13-14 font should work here. Experiment with
         // different ones and see which you like best.
         rgb_matrix::Font current_temp_font;
-
         // Everything else can use the default font
+
+        // Time Variables
+        struct timespec next_time;
+        struct tm local_time;
 
         // TODO: There is another server that serves the same information. If this one returns an error, try again with the other one.
         // TODO: Need to handle errors... I think the weatherCAN site goes down often... It's certainly not reliable.
@@ -87,28 +90,28 @@ namespace WeatherStation {
         // Hold the weather data
         Weather weather;
 
-
-        // Weather Functions
-        WeatherType extractWeatherType(int iconCode, std::string textSummary);
-
         // Weather Fetch Functions
         static size_t CurlWriteCallback(void* contents, size_t size, size_t nmemb, std::string* output);
         std::string FetchData(std::string& url);
+        WeatherDay FetchArchivedForecast(); // TODO: Change the working of this...
 
-        WeatherDay FetchArchivedForecast();
-
+        // Weather Functions
+        WeatherType extractWeatherType(int iconCode, std::string textSummary);
         void ParseWeatherCanXMLData();
 
-        // Draw Methods
-        void DrawSeperatorLines(); // TODO: Implement this
+        // Time Functions
+        void SetCurrentNetworkTime();
 
-        void DrawCurrentDateTime(); // TODO: Implement this
+        // Draw Methods
+        void DrawSeperatorLines();
+
+        void DrawCurrentDateTime();
 
         void DrawCurrentDayWeatherData(); // TODO: Implement this
 
         void DrawPredictedDailyForecastData(); // TODO: Implement this
 
-        void DrawWeatherStationCanvas(); // Main draw function
+        void DrawWeatherStationCanvas(bool dateTimeOnly); // Main draw function
 
         // Main Method
         void* Main(); // TODO: Implement this

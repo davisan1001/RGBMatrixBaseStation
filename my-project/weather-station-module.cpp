@@ -45,6 +45,9 @@ WeatherStationModule::WeatherStationModule(t_module* t_modArg, rgb_matrix::RGBMa
 		std::cerr << errMsg.c_str();
 		throw std::invalid_argument(errMsg);
 	}
+    
+    // Set current network time
+    SetCurrentNetworkTime();
 
     // Setup the Weather data storage struct
     weather = Weather();
@@ -110,6 +113,12 @@ WeatherType WeatherStationModule::extractWeatherType(int iconCode, std::string t
     return eval;
 }
 
+// Time functions
+void WeatherStationModule::SetCurrentNetworkTime() {
+	// current date and time on the current system
+	next_time.tv_sec = time(NULL);
+	next_time.tv_nsec = 0;
+}
 
 // Weather Fetch Functions
 // Callback function to write received data into a std::string
@@ -369,11 +378,62 @@ void WeatherStationModule::ParseWeatherCanXMLData() {
 
 // Draw Methods
 void WeatherStationModule::DrawSeperatorLines() {
-    rgb_matrix::DrawLine(off_screen_canvas, 0, 9, matrix_width, 9, clock_color);
+    rgb_matrix::DrawLine(off_screen_canvas, 0, 9, matrix_width, 9, seperator_color);
+    rgb_matrix::DrawLine(off_screen_canvas, 0, 36, matrix_width, 36, seperator_color);
     return;
 }
 
 void WeatherStationModule::DrawCurrentDateTime() {
+    std::string month = std::to_string(local_time.tm_mon+1);
+    std::string day = std::to_string(local_time.tm_mday);
+
+    std::string hour = (local_time.tm_hour % 12) == 0 ? std::to_string(12) : std::to_string(local_time.tm_hour % 12); // Convert 24 hour time to 12 hour time
+    std::string minute = std::to_string(local_time.tm_min);
+	if (hour.length() < 2) {
+		hour = "0" + hour;
+	}
+	if (minute.length() < 2) {
+		minute = "0" + minute;
+	}
+
+    std::string monthDayStr = month + "-" + day;
+    std::string hourMinStr = hour + ":" + minute;
+
+    std::string weekday;
+    switch (local_time.tm_wday) {
+    case 0:
+        weekday = "SUN";
+        break;
+    case 1:
+        weekday = "MON";
+        break;
+    case 2:
+        weekday = "TUE";
+        break;
+    case 3:
+        weekday = "WED";
+        break;
+    case 4:
+        weekday = "THU";
+        break;
+    case 5:
+        weekday = "FRI";
+        break;
+    case 6:
+        weekday = "SAT";
+        break;
+    default:
+        weekday = "---";
+        break;
+    }
+
+    rgb_matrix::DrawText(
+        off_screen_canvas, font, 2, 2 + font.baseline(), date_color, NULL, monthDayStr.c_str(), letter_spacing);
+    rgb_matrix::DrawText(
+            off_screen_canvas, font, 25, 2 + font.baseline(), clock_color, NULL, hourMinStr.c_str(), letter_spacing);
+    rgb_matrix::DrawText(
+        off_screen_canvas, font, 50, 2 + font.baseline(), current_weekday_color, NULL, weekday.c_str(), letter_spacing);
+
     return;
 }
 
@@ -385,9 +445,14 @@ void WeatherStationModule::DrawPredictedDailyForecastData() {
     return;
 }
 
-void WeatherStationModule::DrawWeatherStationCanvas() {
+void WeatherStationModule::DrawWeatherStationCanvas(bool dateTimeOnly) {
+    if (dateTimeOnly) {
+        DrawCurrentDateTime();
+        return;
+    }
+    // NOTE: Index is top left and starts at (0, 0)
     DrawSeperatorLines();
-    //DrawCurrentDateTime();
+    DrawCurrentDateTime();
     //DrawCurrentDayWeatherData();
     return;
 }
@@ -401,7 +466,19 @@ void* WeatherStationModule::Main() {
     ParseWeatherCanXMLData();
     // TODO: Handle errors
 
-    DrawWeatherStationCanvas();
+    
+
+    // Update the time seconds
+    next_time.tv_sec += 15;
+
+    // Set readable local_time from next_time.tv_sec
+    localtime_r(&next_time.tv_sec, &local_time);
+
+    // Draw the analog clock with the digital clock in the center.
+    DrawWeatherStationCanvas(false); // TODO: This redraws the whole damn canvas (not efficient). Call redraw of currentdatetime only.
+
+    // Wait to update time.
+    clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
 
     // Update canvas to new time.
     t_mod->off_screen_canvas = off_screen_canvas;
