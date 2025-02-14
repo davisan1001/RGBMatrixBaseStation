@@ -145,7 +145,7 @@ void ClockModule::DrawDigitalClock() {
 void *ClockModule::Main() {
     t_mod->status = OKAY;
     
-    while (true) { // TODO: A while true loop is definitely not the way. Fix this.
+    while (t_mod->state != EXIT) { // TODO: A while true loop is definitely not the way. Fix this.
         // TODO: Handle t_mod->state updates.
 
         // Update the time seconds
@@ -164,6 +164,7 @@ void *ClockModule::Main() {
         t_mod->off_screen_canvas = off_screen_canvas;
         t_mod->update = true; // Set to true AFTER (to avoid RBW (Read Before Write) issues).
     }
-	
+
+	t_mod->status = EXITED;
     pthread_exit(NULL);
 }

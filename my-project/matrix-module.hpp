@@ -18,7 +18,8 @@ namespace Matrix {
     typedef enum {
         LOADING,
         OKAY,
-        ERROR
+        ERROR,
+        EXITED
     } ModuleStatus;
 
     typedef struct {

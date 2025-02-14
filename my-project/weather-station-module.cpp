@@ -1,6 +1,7 @@
 #include "weather-station-module.hpp"
 
 #include "weather-module-images.hpp"
+#include <curl/curl.h>
 #include <stdexcept>
 #include <stdlib.h>
 #include <regex>
@@ -47,6 +48,7 @@ WeatherStationModule::WeatherStationModule(t_module* t_modArg, rgb_matrix::RGBMa
 
     // Setup the Weather data storage struct
     weather = Weather();
+    // TODO: Set all values to defaults
 }
 
 // Weather Functions
@@ -108,17 +110,37 @@ WeatherType WeatherStationModule::extractWeatherType(int iconCode, std::string t
     return eval;
 }
 
-// Weather Fetch Functions
-// Fetch the weather XML file using CURL from the bash command line.
-void WeatherStationModule::FetchWeatherCanData() {
-    string curlCommand = "curl " + weatherCanadaDatamartURL + " > " + weatherDataFile;
 
-    int status = system(curlCommand.c_str()); // This is a blocking call (which may be okay)
-    if (status != 0) {
-        throw runtime_error("Error \"curl\"ing weather data...");
+// Weather Fetch Functions
+// Callback function to write received data into a std::string
+size_t WeatherStationModule::CurlWriteCallback(void* contents, size_t size, size_t nmemb, std::string* output) {
+    size_t totalSize = size * nmemb;
+    output->append((char*)contents, totalSize);
+    return totalSize;
+}
+
+// Fetch the weather XML using CURL.
+std::string WeatherStationModule::FetchData(std::string& url) {
+    CURL* curl = curl_easy_init();
+    if (!curl) {
+        throw runtime_error("Failed to initialize libcurl.");
     }
 
-    return;
+    std::string response;
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlWriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); // Disable SSL verification (not recommended for production)
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+
+    CURLcode res = curl_easy_perform(curl);
+    if (res != CURLE_OK) {
+        throw runtime_error("curl_easy_perform() failed: " + string(curl_easy_strerror(res)));
+        response = "";
+    }
+
+    curl_easy_cleanup(curl);
+    return response;
 }
 
 // TODO: This is A LOT of function for just one method. refactor this by pulling out stuff and organizing into understandable sections with comments.
@@ -216,10 +238,17 @@ WeatherDay WeatherStationModule::FetchArchivedForecast() {
     return weatherDay;
 }
 
-void WeatherStationModule::ParseWeatherXMLData()
-{
+void WeatherStationModule::ParseWeatherCanXMLData() {
     pugi::xml_document doc;
-    pugi::xml_parse_result result = doc.load_file(weatherDataFile.c_str());
+    pugi::xml_parse_result result;
+
+    try {
+        result = doc.load_string(FetchData(weatherCanadaDatamartURL).c_str());
+    }
+    catch(const std::exception& e) {
+        std::cerr << e.what() << '\n';
+        // TODO: Handle what to do if the forecast data could not be successfully fetched.
+    }
 
     // XML Parsing Error Checking
     if (!result) {
@@ -290,6 +319,7 @@ void WeatherStationModule::ParseWeatherXMLData()
     } else {
         // If today's forecast data is already stored then keep it...
         if (weather.currentConditions.type == UNKNOWN) {
+            // TODO IMPORTANT: Change the way this archived weather fetch works
             // If no forecast data was gathered for today,
             // fetch today's archived data to get this information.
             try {
@@ -368,15 +398,8 @@ void* WeatherStationModule::Main() {
     //      - Make sure to only fetch the weather data every 15 minutes (or at specific times of the day).
     // 2. Draw canvas based on updated weather struct.
 
-
-    // TODO: Doing this outside of a loop for now, for proof of concept purposes.
-    FetchWeatherCanData();
+    ParseWeatherCanXMLData();
     // TODO: Handle errors
-
-    ParseWeatherXMLData();
-    // TODO: Handle errors
-
-    
 
     // Update canvas to new time.
     t_mod->off_screen_canvas = off_screen_canvas;

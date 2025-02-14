@@ -79,20 +79,17 @@ int main(int argc, char* argv[]) {
 	RGBMatrix* matrix = RGBMatrix::CreateFromOptions(matrix_options, runtime_opt);
 	if (matrix == NULL) return 1;
 
-    // TODO: Is this off_screen_canvas necessary?
-	//FrameCanvas* off_screen_canvas = matrix->CreateFrameCanvas();
-
 	// Initialize MatrixModule static variables
 	MatrixModule::InitStaticMatrixVariables(matrix);
 
 	// Initialize the MatrixModule objects
     t_module* t_weather_module = new t_module();
 	MatrixModule* weatherModule = new WeatherStation::WeatherStationModule(t_weather_module, matrix);
-    t_weather_module->state = INACTIVE;
+    t_weather_module->state = EXIT; // TODO: Need to implement state handling. See TODO below...
     
     t_module* t_clock_module = new t_module();
 	MatrixModule* clockModule = new ClockModule(t_clock_module, matrix);
-    t_clock_module->state = ACTIVE;
+    t_clock_module->state = INACTIVE; // TODO: Need to implement state handling. See TODO below...
 
 	// Set up an interrupt handler to be able to stop animations while they go
 	// on. Each demo tests for while (!interrupt_received) {},
@@ -105,9 +102,8 @@ int main(int argc, char* argv[]) {
     // Run the module threads
     pthread_t clockModuleThread;
     pthread_create(&clockModuleThread, NULL, MatrixModule::Run, clockModule);
-    // TODO: Uncomment the below when ready to run the weather module...
-    //pthread_t weatherModuleThread;
-    //pthread_create(&weatherModuleThread, NULL, MatrixModule::Run, weatherModule);
+    pthread_t weatherModuleThread;
+    pthread_create(&weatherModuleThread, NULL, MatrixModule::Run, weatherModule);
 
     // TODO: Find a way to succesfully suspend execution of a module when it's inactive.
     //          I think a good way to do this might be to use std::conditional_value
@@ -116,9 +112,13 @@ int main(int argc, char* argv[]) {
 	while (!interrupt_received) {
         // Update the canvas only if the module has posted an update
         if (t_clock_module->update) {
-            // TODO: local off_screen_canvas necessary?
-            /*off_screen_canvas = */matrix->SwapOnVSync(t_clock_module->off_screen_canvas);
+            matrix->SwapOnVSync(t_clock_module->off_screen_canvas);
             t_clock_module->update = false;
+        }
+
+        if (t_weather_module->update) {
+            matrix->SwapOnVSync(t_weather_module->off_screen_canvas);
+            t_weather_module->update = false;
         }
 
         // NOTE: Without this sleep, things are rather unstable.

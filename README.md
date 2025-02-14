@@ -1,4 +1,4 @@
-Controlling RGB LED display with Raspberry Pi GPIO
+sudo apt install libcurl4-openssl-dev
 ==================================================
 
 A library to control commonly available 64x64, 32x32 or 16x32 RGB LED panels
