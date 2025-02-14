@@ -535,7 +535,7 @@ void WeatherStationModule::DrawCurrentDayWeatherData() {
     // Draw high temp
     string highTemp = std::to_string((int)std::round(weather.currentConditions.tempHigh));
     highTemp += "°";
-    if (highTemp.length() < 3) {
+    if (highTemp.length() < 3) { // TODO: Fix this
         rgb_matrix::DrawText(
             off_screen_canvas, font, 41, 29 + font.baseline(), temp_cur_color, NULL, highTemp.c_str(), letter_spacing); // TODO: TESTING PURPOSES Coolor change
     } else {
@@ -557,8 +557,12 @@ void WeatherStationModule::DrawPredictedDailyForecastData() {
     int offset = 17; 
     for (size_t i = 0; i < 4; i++) {
         // Draw weekday text
+        char weekday[3] = "00";
+        for (int i = 0; weather.forecast[i].day.substr(0, 2).c_str() != '\0'; i++) {
+            weekday[i] = toupper(weather.forecast[i].day.substr(0, 2).c_str()[i]);
+        }
         rgb_matrix::DrawText(
-            off_screen_canvas, font, 2 + (offset*i), 38 + font.baseline(), future_weekday_color, NULL, weather.forecast[i].day.substr(0, 2).c_str(), letter_spacing);
+            off_screen_canvas, font, 3 + (offset*i), 38 + font.baseline(), future_weekday_color, NULL, weekday, letter_spacing);
         
         // Draw weather icon
         rgb_matrix::SetImage(off_screen_canvas, 3 + (offset*i), 44,
