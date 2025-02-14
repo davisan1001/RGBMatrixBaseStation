@@ -401,6 +401,8 @@ void* WeatherStationModule::Main() {
     ParseWeatherCanXMLData();
     // TODO: Handle errors
 
+    DrawWeatherStationCanvas();
+
     // Update canvas to new time.
     t_mod->off_screen_canvas = off_screen_canvas;
     t_mod->update = true; // Set to true AFTER (to avoid RBW (Read Before Write) issues).

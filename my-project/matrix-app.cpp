@@ -85,11 +85,11 @@ int main(int argc, char* argv[]) {
 	// Initialize the MatrixModule objects
     t_module* t_weather_module = new t_module();
 	MatrixModule* weatherModule = new WeatherStation::WeatherStationModule(t_weather_module, matrix);
-    t_weather_module->state = EXIT; // TODO: Need to implement state handling. See TODO below...
+    t_weather_module->state = ACTIVE; // TODO: Need to implement state handling. See TODO below...
     
     t_module* t_clock_module = new t_module();
 	MatrixModule* clockModule = new ClockModule(t_clock_module, matrix);
-    t_clock_module->state = INACTIVE; // TODO: Need to implement state handling. See TODO below...
+    t_clock_module->state = EXIT; // TODO: Need to implement state handling. See TODO below...
 
 	// Set up an interrupt handler to be able to stop animations while they go
 	// on. Each demo tests for while (!interrupt_received) {},
