@@ -394,17 +394,23 @@ const uint8_t* WeatherStationModule::GetLargeImageByType(WeatherType type) {
         return matrix_weather_images::large_sun_cloud_mix_icon_option1;
         break;
     case LIGHT_FLURRIES:
+        return matrix_weather_images::large_light_flurries_icon;
+        break;
     case SNOW:
+        return matrix_weather_images::large_snow_icon_option1;
+        break;
     case CLOUD:
-        return matrix_weather_images::large_error_icon;
+        return matrix_weather_images::large_cloud_icon;
         break;
     case LIGHT_RAIN:
     case RAIN:
         return matrix_weather_images::large_rain_icon_option1;
         break;
     case FREEZING_RAIN:
+        return matrix_weather_images::large_freezing_rain_icon_option1;
+        break;
     case RAIN_SNOW:
-        return matrix_weather_images::large_error_icon;
+        return matrix_weather_images::large_rain_snow_icon_option1;
         break;
     case THUNDERSHOWERS:
         return matrix_weather_images::large_thunder_showers_icon_option1;
@@ -426,8 +432,10 @@ const uint8_t* WeatherStationModule::GetSmallImageByType(WeatherType type) {
         return matrix_weather_images::small_sun_cloud_mixed_icon_option1;
         break;
     case LIGHT_FLURRIES:
+        return matrix_weather_images::small_light_flurries_icon;
+        break;
     case SNOW:
-        return matrix_weather_images::small_error_icon;
+        return matrix_weather_images::small_snow_icon;
         break;
     case CLOUD:
         return matrix_weather_images::small_cloud_icon;
@@ -437,8 +445,10 @@ const uint8_t* WeatherStationModule::GetSmallImageByType(WeatherType type) {
         return matrix_weather_images::small_rain_icon;
         break;
     case FREEZING_RAIN:
+        return matrix_weather_images::small_freezing_rain_icon;
+        break;
     case RAIN_SNOW:
-        return matrix_weather_images::small_error_icon;
+        return matrix_weather_images::small_snow_rain_icon_option1;
         break;
     case THUNDERSHOWERS:
         return matrix_weather_images::small_thunder_showers_icon_option1;
