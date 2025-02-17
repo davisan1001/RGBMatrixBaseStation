@@ -371,11 +371,10 @@ void WeatherStationModule::DrawSeperatorLines() {
 
 void WeatherStationModule::DrawCurrentDateTime() {
     // Blank out the datetime section by drawing in black pixel values
-    std::array<uint8_t, (3*64*9)> blank_out = {255}; // Set to all white (to make sure this is working)
-    int blank_out_width = 64;
-    int blank_out_height = 9;
-    rgb_matrix::SetImage(off_screen_canvas, 0, 0, blank_out.data(),
-        blank_out_width*blank_out_height, blank_out_width, blank_out_height, false);
+    rgb_matrix::SetImage(off_screen_canvas, 0, 0, matrix_weather_images::datetime_erase_box,
+        matrix_weather_images::datetime_erase_box_size,
+        matrix_weather_images::datetime_erase_box_width,
+        matrix_weather_images::datetime_erase_box_height, false);
     
 
     std::string month = std::to_string(local_time.tm_mon + 1);
