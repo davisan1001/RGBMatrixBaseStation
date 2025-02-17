@@ -462,7 +462,7 @@ void WeatherStationModule::DrawCurrentDayWeatherData() {
         }
     } else {
         rgb_matrix::DrawText(
-            off_screen_canvas, font, 40, 29 + font.baseline(), temp_high_color, NULL, weather.currentConditions.tempHigh.c_str(), letter_spacing);
+            off_screen_canvas, font, 38, 29 + font.baseline(), temp_high_color, NULL, weather.currentConditions.tempHigh.c_str(), letter_spacing);
     }
 
     // Draw feelsLike (change colour depending if it's humidex or windchill)
