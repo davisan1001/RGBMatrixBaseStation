@@ -42,7 +42,7 @@ private:
     rgb_matrix::FrameCanvas* Update();
 
 public:
-    ClockModule(rgb_matrix::RGBMatrix* m, bool includeDigitalClock = false);
+    ClockModule(rgb_matrix::RGBMatrix* m, bool includeDigitalClock);
 };
 
 #endif

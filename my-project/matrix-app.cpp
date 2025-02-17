@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 
 	// Initialize the MatrixModule objects
 	MatrixModule* weatherModule = new WeatherStation::WeatherStationModule(matrix);
-	MatrixModule* clockModule = new ClockModule(matrix);
+	MatrixModule* clockModule = new ClockModule(matrix, true);
 
     // Setup module tracking for display
     //  1 = Clock Module;
