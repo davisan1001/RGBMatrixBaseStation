@@ -56,6 +56,9 @@ WeatherStationModule::WeatherStationModule(t_module* t_modArg, rgb_matrix::RGBMa
 
     // Setup the Weather data storage struct
     weather = Weather();
+
+    // Set off_screen_canvas pointer
+    t_mod->off_screen_canvas = off_screen_canvas;
 }
 
 // Weather Functions
@@ -368,7 +371,7 @@ void WeatherStationModule::DrawSeperatorLines() {
 
 void WeatherStationModule::DrawCurrentDateTime() {
     // Blank out the datetime section by drawing in black pixel values
-    std::array<uint8_t, 1728> blank_out = {0};
+    std::array<uint8_t, (3*64*9)> blank_out = {255}; // Set to all white (to make sure this is working)
     int blank_out_width = 64;
     int blank_out_height = 9;
     rgb_matrix::SetImage(off_screen_canvas, 0, 0, blank_out.data(),
@@ -569,8 +572,6 @@ void* WeatherStationModule::Main() {
         // Update the time seconds (to the next whole 15 second interval)
         next_time.tv_sec = (current_time.tv_sec / 15 + 1) * 15;
 
-        // Update canvas to new time.
-        t_mod->off_screen_canvas = off_screen_canvas;
         t_mod->update = true; // Set to true AFTER (to avoid RBW (Read Before Write) issues).
     }
 
