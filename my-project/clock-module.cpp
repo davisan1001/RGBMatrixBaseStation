@@ -160,18 +160,14 @@ void *ClockModule::Main() {
         // Set readable local_time from next_time.tv_sec
         localtime_r(&next_time.tv_sec, &local_time);
 
-        if (t_mod->update == false) {
-            // Draw the clock (using the local_time set from the next time).
-            DrawClock();
-        }
+        // Draw the clock (using the local_time set from the next time).
+        DrawClock();
 
         // Wait to update time.
         clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
         
-        if (t_mod->update == false) {
-            // Set update ready to true
-            t_mod->update = true;
-        }
+        // Set update ready to true
+        t_mod->update = true;
     }
 
 	t_mod->status = EXITED;
