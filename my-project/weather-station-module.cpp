@@ -16,7 +16,7 @@ using namespace WeatherStation;
 
 string weatherTypeString[12] = { "SUN", "PARTLY_CLOUDY", "MOSTLY_CLOUDY", "LIGHT_FLURRIES", "SNOW", "CLOUD", "LIGHT_RAIN", "RAIN", "FREEZING_RAIN", "RAIN_SNOW", "THUNDERSHOWERS", "UNKNOWN" };
 
-WeatherStationModule::WeatherStationModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m) : MatrixModule(t_modArg, m) {
+WeatherStationModule::WeatherStationModule(rgb_matrix::RGBMatrix* m) : MatrixModule(m) {
     // Setup default colors
     white_color = rgb_matrix::Color(255, 255, 255);
     seperator_color = rgb_matrix::Color(84, 84, 84);
@@ -56,9 +56,6 @@ WeatherStationModule::WeatherStationModule(t_module* t_modArg, rgb_matrix::RGBMa
 
     // Setup the Weather data storage struct
     weather = Weather();
-
-    // Set off_screen_canvas pointer
-    t_mod->off_screen_canvas = off_screen_canvas;
 }
 
 // Weather Functions
@@ -543,36 +540,35 @@ void WeatherStationModule::DrawWeatherStationCanvas(bool dateTimeOnly) {
     return;
 }
 
-void* WeatherStationModule::Main() {
-    while (t_mod->state != EXIT) {
-        // Set readable local_time from next_time.tv_sec
-        localtime_r(&next_time.tv_sec, &local_time);
+rgb_matrix::FrameCanvas* WeatherStationModule::Update() {
+    // Set readable local_time from next_time.tv_sec
+    next_time.tv_sec = time(NULL);
+    next_time.tv_nsec = 0;
+    localtime_r(&next_time.tv_sec, &local_time);
 
-        // If 20 minutes have passed, re-fetch & redraw weather data
-        clock_gettime(CLOCK_REALTIME, &current_time);
-        if (current_time.tv_sec >= next_weather_update.tv_sec) {
-            next_weather_update.tv_sec = current_time.tv_sec + 60*20; // Wait another 20 minutes from now
-            try {
-                ParseWeatherCanXMLData();
-            }
-            catch(const std::exception& e) {
-                MatrixModule::LogError(e.what());
-            }
-            DrawWeatherStationCanvas(false);
-        } else {
-            // Else redraw only the time
-            // Draw the analog clock with the digital clock in the center.
-            DrawWeatherStationCanvas(true);
+    // If 20 minutes have passed, re-fetch & redraw weather data
+    clock_gettime(CLOCK_REALTIME, &current_time);
+    if (current_time.tv_sec >= next_weather_update.tv_sec) {
+        next_weather_update.tv_sec = current_time.tv_sec + 60*20; // Wait another 20 minutes from now
+        try {
+            ParseWeatherCanXMLData();
         }
-
-        // Wait to update time.
-        clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
-
-        // Update the time seconds (to the next whole 15 second interval)
-        next_time.tv_sec = (current_time.tv_sec / 15 + 1) * 15;
-
-        t_mod->update = true; // Set to true AFTER (to avoid RBW (Read Before Write) issues).
+        catch(const std::exception& e) {
+            MatrixModule::LogError(e.what());
+        }
+        DrawWeatherStationCanvas(false);
+    } else {
+        // Else redraw only the time
+        // Draw the analog clock with the digital clock in the center.
+        DrawWeatherStationCanvas(true);
     }
 
-    pthread_exit(NULL);
+    // Wait to update time.
+    clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
+
+    // Update the time seconds (to the next whole 15 second interval)
+    //next_time.tv_sec = (current_time.tv_sec / 15 + 1) * 15;
+    next_time.tv_sec = current_time.tv_sec + 1;
+
+    return off_screen_canvas;
 }

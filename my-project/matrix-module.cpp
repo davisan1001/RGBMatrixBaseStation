@@ -5,16 +5,7 @@ using namespace Matrix;
 int MatrixModule::matrix_width;
 int MatrixModule::matrix_height;
 
-MatrixModule::MatrixModule(t_module* t_modArg) {
-    t_mod = t_modArg;
-
-    // Setup default t_module values
-    t_mod->status = LOADING;
-    t_mod->update = false;
-    t_mod->off_screen_canvas = nullptr;
-}
-
-MatrixModule::MatrixModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m) : MatrixModule::MatrixModule(t_modArg) {
+MatrixModule::MatrixModule(rgb_matrix::RGBMatrix* m) {
 	// Setup font
 	const char* bdf_font_file = "../fonts/tom-thumb_fixed_4x6.bdf"; // TODO: This should be setable for each matrix module.
 
@@ -37,7 +28,7 @@ MatrixModule::MatrixModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m) : Matri
 	off_screen_canvas = m->CreateFrameCanvas();
 }
 
-MatrixModule::MatrixModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m, const char* bdf_font_file) : MatrixModule::MatrixModule(t_modArg) {
+MatrixModule::MatrixModule(rgb_matrix::RGBMatrix* m, const char* bdf_font_file) {
 	if (bdf_font_file == NULL) {
 		std::string errMsg = std::string("Unrecognized font file\n");
 		std::cerr << errMsg.c_str();
@@ -80,8 +71,4 @@ void MatrixModule::LogError(const std::string& errorMessage) {
     } else {
         std::cerr << "Error: Could not open log file!" << std::endl;
     }
-}
-
-void *MatrixModule::Run(void * context) {
-    return ((MatrixModule*)context)->Main();
 }

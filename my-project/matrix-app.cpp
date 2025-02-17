@@ -86,23 +86,12 @@ int main(int argc, char* argv[]) {
 	MatrixModule::InitStaticMatrixVariables(matrix);
 
 	// Initialize the MatrixModule objects
-    t_module* t_weather_module = new t_module();
-	MatrixModule* weatherModule = new WeatherStation::WeatherStationModule(t_weather_module, matrix);
-    t_weather_module->state = ACTIVE;
-    
-    t_module* t_clock_module = new t_module();
-	MatrixModule* clockModule = new ClockModule(t_clock_module, matrix);
-    t_clock_module->state = ACTIVE;
-
-    // Run the module threads
-    pthread_t clockModuleThread;
-    pthread_create(&clockModuleThread, NULL, MatrixModule::Run, clockModule);
-    pthread_t weatherModuleThread;
-    pthread_create(&weatherModuleThread, NULL, MatrixModule::Run, weatherModule);
+	MatrixModule* weatherModule = new WeatherStation::WeatherStationModule(matrix);
+	MatrixModule* clockModule = new ClockModule(matrix);
 
     // Setup module tracking for display
     int currentActiveModule = 1; // 1 = Clock Module; 2 = Weather Module;
-    t_module* t_current_module = t_clock_module; // Begin with the clock module
+    MatrixModule* currentModule = clockModule;
 
     clock_gettime(CLOCK_REALTIME, &current_time);
     next_time.tv_sec = current_time.tv_sec + 15; // Change to the next module after 15 seconds
@@ -125,38 +114,27 @@ int main(int argc, char* argv[]) {
         if (current_time.tv_sec >= next_time.tv_sec) {
             if (currentActiveModule == 1) {
                 currentActiveModule = 2;
-                t_current_module = t_weather_module;
+                currentModule = weatherModule;
                 next_time.tv_sec = current_time.tv_sec + 45; // Change to the next module after 15 seconds
             } else {
                 currentActiveModule = 1;
-                t_current_module = t_clock_module;
+                currentModule = clockModule;
                 next_time.tv_sec = current_time.tv_sec + 15; // Change to the next module after 15 seconds
             }
         }
         
         // Update the canvas only if the module has posted an update
-        if (t_current_module->update) {
-            matrix->SwapOnVSync(t_current_module->off_screen_canvas);
-            t_current_module->update = false;
-        }
+        matrix->SwapOnVSync(currentModule->Update());
 
+        // TODO: This sleep may not be needed with this new design
         // NOTE: Without this sleep, things are rather unstable.
-        usleep(SLEEP);
+        // usleep(SLEEP);
 	}
 	// ~~~ END ~~~ //
 
-    // Set each module state to EXIT
-    t_clock_module->state = EXIT;
-    t_weather_module->state = EXIT;
-    // Wait for threads to exit.
-    pthread_join(clockModuleThread, NULL);
-    pthread_join(weatherModuleThread, NULL);
-
 	// Delete all objects initialized with 'new'
 	delete clockModule;
-    delete t_clock_module;
     delete weatherModule;
-    delete t_weather_module;
 	delete matrix;
 
 	printf("Received CTRL-C. Exiting.\n");

@@ -11,31 +11,8 @@
 #include "pixel-mapper.h"
 
 namespace Matrix {
-    typedef enum {
-        ACTIVE,
-        INACTIVE,
-        EXIT
-    } ModuleState;
-
-    typedef enum {
-        LOADING,
-        OKAY,
-        ERROR,
-        EXITED
-    } ModuleStatus;
-
-    typedef struct {
-        ModuleState state;      // Used to communicate state to the module.
-        ModuleStatus status;    // Used for the module to communicate its status.
-
-        bool update;            // Shared bool to track if off_screen_canvas was updated.
-        rgb_matrix::FrameCanvas* off_screen_canvas;
-    } t_module;
-
     class MatrixModule {
     protected:
-        t_module* t_mod;
-
         static int matrix_width;
         static int matrix_height;
 
@@ -43,20 +20,17 @@ namespace Matrix {
 
         rgb_matrix::Font font;
 
-        MatrixModule(t_module* t_modArg);
-        MatrixModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m);
-        MatrixModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m, const char* bdf_font_file);
+        MatrixModule(rgb_matrix::RGBMatrix* m);
+        MatrixModule(rgb_matrix::RGBMatrix* m, const char* bdf_font_file);
 
         // Error Logging Methods
         static void LogError(const std::string& errorMessage);
-
-        virtual void* Main() = 0;
 
     public:
         // Initialize all necessary static member variables
         static void InitStaticMatrixVariables(rgb_matrix::RGBMatrix* m);
 
-        static void* Run(void* context);
+        virtual rgb_matrix::FrameCanvas* Update() = 0;
 
         virtual ~MatrixModule();
     };

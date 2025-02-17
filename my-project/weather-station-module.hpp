@@ -112,17 +112,17 @@ namespace WeatherStation {
 
         void DrawCurrentDateTime();
 
-        void DrawCurrentDayWeatherData(); // TODO: Implement this
+        void DrawCurrentDayWeatherData();
 
-        void DrawPredictedDailyForecastData(); // TODO: Implement this
+        void DrawPredictedDailyForecastData();
 
         void DrawWeatherStationCanvas(bool dateTimeOnly); // Main draw function
 
         // Main Method
-        void* Main(); // TODO: Implement this
+        rgb_matrix::FrameCanvas* Update();
 
     public:
-        WeatherStationModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m);
+        WeatherStationModule(rgb_matrix::RGBMatrix* m);
     };
 
 } // namespace WeatherStation 

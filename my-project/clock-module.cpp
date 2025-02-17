@@ -5,7 +5,7 @@
 
 // Simple analog/digital clock
 
-ClockModule::ClockModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m) : MatrixModule(t_modArg, m) {
+ClockModule::ClockModule(rgb_matrix::RGBMatrix* m) : MatrixModule(m) {
 	// Set text color default to white
 	text_color = rgb_matrix::Color(255, 255, 255);
 
@@ -14,11 +14,6 @@ ClockModule::ClockModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m) : MatrixM
 
 	// Set default flag_include_digital_clock
 	flag_include_digital_clock = true;
-
-	SetCurrentNetworkTime();
-
-    // Set the off_screen_canvas pointer
-    t_mod->off_screen_canvas = off_screen_canvas;
 }
 
 void ClockModule::SetCurrentNetworkTime() {
@@ -148,28 +143,20 @@ void ClockModule::DrawDigitalClock() {
 		local_time_str.c_str(), letter_spacing);
 }
 
-void *ClockModule::Main() {
-    t_mod->status = OKAY;
+rgb_matrix::FrameCanvas* ClockModule::Update() {
+    // Update the time seconds
+    SetCurrentNetworkTime();
+    next_time.tv_sec += 1;
+
+    // Set readable local_time from next_time.tv_sec
+    localtime_r(&next_time.tv_sec, &local_time);
+
+    // Draw the clock (using the local_time set from the next time).
+    DrawClock();
+
+    // Wait to update time.
+    clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
     
-    while (t_mod->state != EXIT) { // TODO: A while true loop is definitely not the way. Fix this.
-        // TODO: Handle t_mod->state updates.
-
-        // Update the time seconds
-        next_time.tv_sec += 1;
-
-        // Set readable local_time from next_time.tv_sec
-        localtime_r(&next_time.tv_sec, &local_time);
-
-        // Draw the clock (using the local_time set from the next time).
-        DrawClock();
-
-        // Wait to update time.
-        clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
-        
-        // Set update ready to true
-        t_mod->update = true;
-    }
-
-	t_mod->status = EXITED;
-    pthread_exit(NULL);
+    // Set update ready to true
+    return off_screen_canvas;
 }

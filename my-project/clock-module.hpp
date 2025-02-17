@@ -46,10 +46,10 @@ private:
 
     void DrawDigitalClock();
 
-    void *Main();
+    rgb_matrix::FrameCanvas* Update();
 
 public:
-    ClockModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m);
+    ClockModule(rgb_matrix::RGBMatrix* m);
 };
 
 #endif
