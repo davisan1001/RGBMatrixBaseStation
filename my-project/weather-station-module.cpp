@@ -217,15 +217,14 @@ void WeatherStationModule::ParseWeatherCanXMLData() {
 
     // Get Current Conditions
     pugi::xml_node currentConditions = siteData.child("currentConditions");
-    weather.currentConditions.tempCur = currentConditions.child("temperature").text().get();
+    weather.currentConditions.tempCur = currentConditions.child("temperature").text().as_string("--");
     
     // TODO: The below is untested
     if (currentConditions.child("windChill")) { // Get windchill (if it's winter and it exists)
-        weather.currentConditions.feelsLike = currentConditions.child("windChill").text().get();
+        weather.currentConditions.feelsLike = currentConditions.child("windChill").text().as_string("--");
     } else if (currentConditions.child("humidex")) { // Get humidex (if it's summer and it exists)
-        weather.currentConditions.feelsLike = currentConditions.child("humidex").text().get();
+        weather.currentConditions.feelsLike = currentConditions.child("humidex").text().as_string("--");
     }
-    weather.currentConditions.feelsLike = currentConditions.child("windChill").text().get();
     
 
     pugi::xml_node currentForecast = forecastGroup.child("forecast"); // The first forecast object should be Today or Tonight (depending on time of day).
@@ -233,7 +232,7 @@ void WeatherStationModule::ParseWeatherCanXMLData() {
         // Set day text
         weather.currentConditions.day = currentForecast.child("period").text().get();
 
-        weather.currentConditions.tempHigh = currentForecast.child("temperatures").find_child_by_attribute("temperature", "class", "high").text().as_double(-100);
+        weather.currentConditions.tempHigh = currentForecast.child("temperatures").find_child_by_attribute("temperature", "class", "high").text().as_string("--");
 
         weather.currentConditions.pop = currentForecast.child("abbreviatedForecast").child("pop").text().as_int(-1);
 
@@ -268,7 +267,7 @@ void WeatherStationModule::ParseWeatherCanXMLData() {
         weather.forecast[i].day = forecast.child("period").text().get();
 
         // Set remaining info
-        weather.forecast[i].tempHigh = forecast.child("temperatures").find_child_by_attribute("temperature", "class", "high").text().as_double(-100);
+        weather.forecast[i].tempHigh = forecast.child("temperatures").find_child_by_attribute("temperature", "class", "high").text().as_string("--");
 
         int iconCode = forecast.child("abbreviatedForecast").child("iconCode").text().as_int(-1);
         int pop = forecast.child("abbreviatedForecast").child("pop").text().as_int(-1);
@@ -467,7 +466,7 @@ void WeatherStationModule::DrawCurrentDayWeatherData() {
     }
 
     // Draw feelsLike (change colour depending if it's humidex or windchill)
-    if (weather.currentConditions.feelsLike != std::string("--")) {
+    if (weather.currentConditions.feelsLike != std::string("--") && weather.currentConditions.tempCur != std::string("--")) {
         string feelsLike = std::to_string((int)std::round(stod(weather.currentConditions.feelsLike)));
         feelsLike += "°";
         if (stod(weather.currentConditions.feelsLike) > stod(weather.currentConditions.tempCur)) {
