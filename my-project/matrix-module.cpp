@@ -66,6 +66,22 @@ void MatrixModule::InitStaticMatrixVariables(rgb_matrix::RGBMatrix* m) {
 	MatrixModule::matrix_height = m->height();
 }
 
+void MatrixModule::LogError(const std::string& errorMessage) {
+    std::ofstream logFile("log.txt", std::ios::app); // Open in append mode
+    if (logFile.is_open()) {
+        // Get current time
+        std::time_t now = std::time(nullptr);
+        char timeStr[100];
+        std::strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+
+        // Write timestamp and error message
+        logFile << "[" << timeStr << "] " << errorMessage << std::endl;
+        logFile.close();
+    } else {
+        std::cerr << "Error: Could not open log file!" << std::endl;
+    }
+}
+
 void *MatrixModule::Run(void * context) {
     return ((MatrixModule*)context)->Main();
 }

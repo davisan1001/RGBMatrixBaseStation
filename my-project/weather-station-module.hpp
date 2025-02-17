@@ -27,31 +27,29 @@ namespace WeatherStation {
     extern std::string weatherTypeString[12];
 
     typedef struct {
-        std::string day;
+        std::string day = "";
 
-        bool isNight;
+        std::string tempCur = "--"; // Only available for current 
+        std::string feelsLike = "--"; // Only available for current conditions
 
-        double tempCur; // Only available for current 
-        double windChill; // Only available for current conditions
-
-        double tempHigh;
+        std::string tempHigh = "--";
 
         // Abbreviated
         WeatherType type = UNKNOWN; // Default to UNKNOWN
-        std::string textSummary;
-        int pop; // Percentage of Precipitation. May be empty, so set to -1.
+        std::string textSummary = "";
+        int pop = -1; // Percentage of Precipitation. May be empty, so set to -1.
     } WeatherDay;
 
     typedef struct {
         // Date and Time of the Weather data
-        std::string year;
-        std::string month;
-        std::string day;
-        std::string hour;
-        std::string minute;
+        std::string year = "--";
+        std::string month = "--";
+        std::string day = "--";
+        std::string hour = "--";
+        std::string minute = "--";
 
-        std::string sunrise;
-        std::string sunset;
+        std::string sunrise = "--:--";
+        std::string sunset = "--:--";
 
         WeatherDay currentConditions;
 
@@ -61,19 +59,18 @@ namespace WeatherStation {
     class WeatherStationModule : public MatrixModule {
     private:
         int letter_spacing = 0;
+        rgb_matrix::Color white_color;
         rgb_matrix::Color seperator_color;
         rgb_matrix::Color temp_cur_color;
         rgb_matrix::Color temp_high_color;
         rgb_matrix::Color windchill_color;
-        rgb_matrix::Color clock_color;
+        rgb_matrix::Color humidex_color;
         rgb_matrix::Color date_color;
         rgb_matrix::Color current_weekday_color;
         rgb_matrix::Color future_weekday_color;
         rgb_matrix::Color temp_predicted_low_color;
         rgb_matrix::Color temp_predicted_high_color;
 
-        // 7-8 x 13-14 font should work here. Experiment with
-        // different ones and see which you like best.
         rgb_matrix::Font current_temp_font;
         // Everything else can use the default font
 

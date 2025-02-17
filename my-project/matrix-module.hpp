@@ -2,6 +2,8 @@
 #define MATRIX_MODULE_H
 
 #include <iostream>
+#include <fstream>
+#include <ctime>
 #include <pthread.h>
 
 #include "graphics.h"
@@ -44,6 +46,9 @@ namespace Matrix {
         MatrixModule(t_module* t_modArg);
         MatrixModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m);
         MatrixModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m, const char* bdf_font_file);
+
+        // Error Logging Methods
+        static void LogError(const std::string& errorMessage);
 
         virtual void* Main() = 0;
 

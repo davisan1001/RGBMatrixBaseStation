@@ -17,11 +17,12 @@ string weatherTypeString[12] = { "SUN", "PARTLY_CLOUDY", "MOSTLY_CLOUDY", "LIGHT
 
 WeatherStationModule::WeatherStationModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m) : MatrixModule(t_modArg, m) {
     // Setup default colors
+    white_color = rgb_matrix::Color(255, 255, 255);
     seperator_color = rgb_matrix::Color(84, 84, 84);
     temp_cur_color = rgb_matrix::Color(255, 255, 255);
     temp_high_color = rgb_matrix::Color(255, 126, 0);
     windchill_color = rgb_matrix::Color(0, 183, 239);
-    clock_color = rgb_matrix::Color(255, 255, 255);
+    humidex_color = rgb_matrix::Color(255, 126, 0);
     date_color = rgb_matrix::Color(
         120, 120, 120);  // Grey (consider changing for visibility)
     current_weekday_color = rgb_matrix::Color(111, 49, 152);
@@ -133,12 +134,14 @@ size_t WeatherStationModule::CurlWriteCallback(void* contents, size_t size, size
 
 // Fetch the weather XML using CURL.
 std::string WeatherStationModule::FetchData(std::string& url) {
+    std::string response;
+    
     CURL* curl = curl_easy_init();
     if (!curl) {
         throw runtime_error("Failed to initialize libcurl.");
+        response = "";
     }
 
-    std::string response;
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlWriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
@@ -155,102 +158,6 @@ std::string WeatherStationModule::FetchData(std::string& url) {
     return response;
 }
 
-// TODO: This is A LOT of function for just one method. refactor this by pulling out stuff and organizing into understandable sections with comments.
-WeatherDay WeatherStationModule::FetchArchivedForecast() {
-    // Get current time.
-    // current date and time on the current system
-    time_t now = time(NULL);
-    // convert now to UTC
-    tm* utc_time = gmtime(&now);
-
-    string year = std::to_string(utc_time->tm_year + 1900);
-    string month = std::to_string(utc_time->tm_mon + 1);
-    if (utc_time->tm_mon + 1 < 10) { month = "0" + month; }
-    string day = std::to_string(utc_time->tm_mday);
-    if (utc_time->tm_mday < 10) { day = "0" + day; }
-
-    string hour = std::to_string(utc_time->tm_hour);
-    if (utc_time->tm_hour < 10) { hour = "0" + hour; }
-
-    string url = std::string("https://dd.weather.gc.ca/") + year + month + day + std::string("/WXO-DD/citypage_weather/NS/");
-
-    WeatherDay weatherDay;
-
-    // Fetch weather archive from a couple hours ago.
-    int hour_diff = 2;
-    while (true) {
-        // If we've gone back 8 hours and still don't have anything, then we should stop looking
-        if (hour_diff > 8) {
-            throw runtime_error("Weather archive pulled up to 8 hours ago, and didn't find required forecast data..."); // TODO: Create custom exceptions to properly handle these...
-        }
-
-        // Try checking 2 hours ago
-        string hour = std::to_string(utc_time->tm_hour - hour_diff);
-        if (utc_time->tm_hour - hour_diff < 10) { hour = "0" + hour; }
-        string specific_hour_url = url + hour + std::string("/");
-
-        // Find the weatherArchiveData File Name
-        string getFilenameCmd = "curl " + specific_hour_url + " | grep -om1 '\"[^\"]*" + weatherCanadaStationCode + "_en\\.xml\"' | tr -d '\"'";
-
-        string weatherArchiveDataFilename;
-        FILE* stream;
-        const int max_buffer = 256;
-        char buffer[max_buffer];
-
-        stream = popen(getFilenameCmd.c_str(), "r");
-        if (stream) {
-            while (!feof(stream))
-                if (fgets(buffer, max_buffer, stream) != NULL) weatherArchiveDataFilename.append(buffer);
-            pclose(stream);
-        }
-
-        // Remove any possible trailing newline
-        weatherArchiveDataFilename = weatherArchiveDataFilename.erase(weatherArchiveDataFilename.find_last_not_of("\n") + 1);
-
-        // Get the Weather Archive Data and Parse XML
-        specific_hour_url = specific_hour_url + weatherArchiveDataFilename;
-        string curlCommand = "curl " + specific_hour_url + " > " + weatherArchivedDataFile;
-
-        int status = system(curlCommand.c_str());
-        if (status != 0) {
-            throw runtime_error("System Curl command returned non-zero code..."); // TODO: Create custom exceptions to properly handle these...
-        }
-
-        pugi::xml_document doc;
-        pugi::xml_parse_result result = doc.load_file(weatherArchivedDataFile.c_str());
-
-        if (!result) { // XML Parsing Error Checking
-            throw runtime_error("XML parser failed..."); // TODO: Create custom exceptions to properly handle these...
-        }
-
-        // Get forecast type data
-        pugi::xml_node currentForecast = doc.child("siteData").child("forecastGroup").child("forecast"); // The first forecast object should be Today or Tonight (depending on time of day).
-        if (std::string(currentForecast.child("period").attribute("textForecastName").value()) == std::string("Today")) {
-            // Get data and return
-            weatherDay.tempHigh = currentForecast.child("temperatures").find_child_by_attribute("temperature", "class", "high").text().as_double(-100);
-
-            weatherDay.pop = currentForecast.child("abbreviatedForecast").child("pop").text().as_int(-1);
-
-            weatherDay.textSummary = currentForecast.child("abbreviatedForecast").child("textSummary").text().get();
-
-            // Extract the Type
-            int iconCode = currentForecast.child("abbreviatedForecast").child("iconCode").text().as_int(-1);
-            WeatherType type = extractWeatherType(iconCode, weatherDay.textSummary);
-
-            weatherDay.type = type;
-            break;
-        }
-        else {
-            // If Today's forecast doesn't exist, fetch weather archive from two hours before that. etc...
-            // Increase hour_diff and try again
-            hour_diff += 2;
-            continue;
-        }
-    }
-
-    return weatherDay;
-}
-
 void WeatherStationModule::ParseWeatherCanXMLData() {
     pugi::xml_document doc;
     pugi::xml_parse_result result;
@@ -259,8 +166,7 @@ void WeatherStationModule::ParseWeatherCanXMLData() {
         result = doc.load_string(FetchData(weatherCanadaDatamartURL).c_str());
     }
     catch (const std::exception& e) {
-        std::cerr << e.what() << '\n';
-        // TODO: Handle what to do if the forecast data could not be successfully fetched.
+        MatrixModule::LogError(e.what());
     }
 
     // XML Parsing Error Checking
@@ -309,8 +215,16 @@ void WeatherStationModule::ParseWeatherCanXMLData() {
 
     // Get Current Conditions
     pugi::xml_node currentConditions = siteData.child("currentConditions");
-    double tempCur = currentConditions.child("temperature").text().as_double();
-    double windChill = currentConditions.child("windChill").text().as_double();
+    weather.currentConditions.tempCur = currentConditions.child("temperature").text().get();
+    
+    // TODO: The below is untested
+    if (currentConditions.child("windChill")) { // Get windchill (if it's winter and it exists)
+        weather.currentConditions.feelsLike = currentConditions.child("windChill").text().get();
+    } else if (currentConditions.child("humidex")) { // Get humidex (if it's summer and it exists)
+        weather.currentConditions.feelsLike = currentConditions.child("humidex").text().get();
+    }
+    weather.currentConditions.feelsLike = currentConditions.child("windChill").text().get();
+    
 
     pugi::xml_node currentForecast = forecastGroup.child("forecast"); // The first forecast object should be Today or Tonight (depending on time of day).
     if (std::string(currentForecast.child("period").attribute("textForecastName").value()) == std::string("Today")) {
@@ -328,7 +242,6 @@ void WeatherStationModule::ParseWeatherCanXMLData() {
         WeatherType type = extractWeatherType(iconCode, weather.currentConditions.textSummary);
 
         weather.currentConditions.type = type;
-
     }
     else {
         // If today's forecast data is already stored then keep it...
@@ -336,21 +249,8 @@ void WeatherStationModule::ParseWeatherCanXMLData() {
             // If no forecast data was gathered for today,
             // fetch today's archived data to get this information.
             // TODO IMPORTANT: Implement archived fetch
-            /*
-            try {
-                weather.currentConditions = FetchArchivedForecast();
-            }
-            catch (const std::exception& e) {
-                std::cerr << e.what() << '\n';
-                // TODO: Handle what to do if the archived forecast could not be successfully fetched.
-            }
-            */
         }
     }
-
-    // It's important to set these after, because they could have been overwritten if the else statement ran
-    weather.currentConditions.tempCur = tempCur;
-    weather.currentConditions.windChill = windChill;
 
 
     // Get Forecast for next 4 days
@@ -380,8 +280,6 @@ void WeatherStationModule::ParseWeatherCanXMLData() {
 
     return;
 }
-
-
 
 // Draw Methods
 const uint8_t* WeatherStationModule::GetLargeImageByType(WeatherType type) {
@@ -519,7 +417,7 @@ void WeatherStationModule::DrawCurrentDateTime() {
     rgb_matrix::DrawText(
         off_screen_canvas, font, 2, 2 + font.baseline(), date_color, NULL, monthDayStr.c_str(), letter_spacing);
     rgb_matrix::DrawText(
-        off_screen_canvas, font, 25, 2 + font.baseline(), clock_color, NULL, hourMinStr.c_str(), letter_spacing);
+        off_screen_canvas, font, 25, 2 + font.baseline(), white_color, NULL, hourMinStr.c_str(), letter_spacing);
     rgb_matrix::DrawText(
         off_screen_canvas, font, 51, 2 + font.baseline(), current_weekday_color, NULL, weekday.c_str(), letter_spacing);
 
@@ -535,33 +433,52 @@ void WeatherStationModule::DrawCurrentDayWeatherData() {
         matrix_weather_images::large_weather_icon_height, false);
 
     // Draw current temp
-    string currentTemp = std::to_string((int)std::round(weather.currentConditions.tempCur));
-    currentTemp += "°";
-    if (currentTemp.length() <= 3) { // If there are 2 characters or less (degree character takes 2 bytes)
-        rgb_matrix::DrawText(
-            off_screen_canvas, current_temp_font, 44, 13 + current_temp_font.baseline(), temp_cur_color, NULL, currentTemp.c_str(), letter_spacing);
+    if (weather.currentConditions.tempCur != std::string("--")) {
+        string currentTemp = std::to_string((int)std::round(stod(weather.currentConditions.tempCur))); // Round the value first
+        currentTemp += "°";
+        if (currentTemp.length() <= 3) { // If there are 2 characters or less (degree character takes 2 bytes)
+            rgb_matrix::DrawText(
+                off_screen_canvas, current_temp_font, 44, 13 + current_temp_font.baseline(), temp_cur_color, NULL, currentTemp.c_str(), letter_spacing);
+        } else {
+            rgb_matrix::DrawText(
+                off_screen_canvas, current_temp_font, 40, 13 + current_temp_font.baseline(), temp_cur_color, NULL, currentTemp.c_str(), letter_spacing);
+        }
     } else {
         rgb_matrix::DrawText(
-            off_screen_canvas, current_temp_font, 40, 13 + current_temp_font.baseline(), temp_cur_color, NULL, currentTemp.c_str(), letter_spacing);
+            off_screen_canvas, current_temp_font, 44, 13 + current_temp_font.baseline(), temp_cur_color, NULL, weather.currentConditions.tempCur.c_str(), letter_spacing);
     }
 
     // Draw high temp
-    string highTemp = std::to_string((int)std::round(weather.currentConditions.tempHigh));
-    highTemp += "°";
-    if (highTemp.length() <= 3) { // If there are 2 characters or less (degree character takes 2 bytes)
-        rgb_matrix::DrawText(
-            off_screen_canvas, font, 40, 29 + font.baseline(), temp_high_color, NULL, highTemp.c_str(), letter_spacing);
+    if (weather.currentConditions.tempHigh != std::string("--")) {
+        string highTemp = std::to_string((int)std::round(stod(weather.currentConditions.tempHigh))); // Round the value first
+        highTemp += "°";
+        if (highTemp.length() <= 3) { // If there are 2 characters or less (degree character takes 2 bytes)
+            rgb_matrix::DrawText(
+                off_screen_canvas, font, 40, 29 + font.baseline(), temp_high_color, NULL, highTemp.c_str(), letter_spacing);
+        } else {
+            rgb_matrix::DrawText(
+                off_screen_canvas, font, 36, 29 + font.baseline(), temp_high_color, NULL, highTemp.c_str(), letter_spacing);
+        }
     } else {
         rgb_matrix::DrawText(
-            off_screen_canvas, font, 36, 29 + font.baseline(), temp_high_color, NULL, highTemp.c_str(), letter_spacing);
+            off_screen_canvas, font, 40, 29 + font.baseline(), temp_high_color, NULL, weather.currentConditions.tempHigh.c_str(), letter_spacing);
     }
-    
 
-    // Draw windchill
-    string windChill = std::to_string((int)std::round(weather.currentConditions.windChill));
-    windChill += "°";
-    rgb_matrix::DrawText(
-        off_screen_canvas, font, 50, 29 + font.baseline(), windchill_color, NULL, windChill.c_str(), letter_spacing);
+    // Draw feelsLike (change colour depending if it's humidex or windchill)
+    if (weather.currentConditions.feelsLike != std::string("--")) {
+        string feelsLike = std::to_string((int)std::round(stod(weather.currentConditions.feelsLike)));
+        feelsLike += "°";
+        if (stod(weather.currentConditions.feelsLike) > stod(weather.currentConditions.tempCur)) {
+            rgb_matrix::DrawText(
+                off_screen_canvas, font, 50, 29 + font.baseline(), humidex_color, NULL, feelsLike.c_str(), letter_spacing);
+        } else {
+            rgb_matrix::DrawText(
+                off_screen_canvas, font, 50, 29 + font.baseline(), windchill_color, NULL, feelsLike.c_str(), letter_spacing);
+        }
+    } else {
+        rgb_matrix::DrawText(
+            off_screen_canvas, font, 50, 29 + font.baseline(), white_color, NULL, weather.currentConditions.feelsLike.c_str(), letter_spacing);
+    }
 
     return;
 }
@@ -583,7 +500,7 @@ void WeatherStationModule::DrawPredictedDailyForecastData() {
             matrix_weather_images::small_weather_icon_height, false);
 
         // Draw temp high
-        string highTemp = std::to_string((int)std::round(weather.forecast[i].tempHigh));
+        string highTemp = std::to_string((int)std::round(stod(weather.forecast[i].tempHigh))); // Round the value first
         if(highTemp.length() < 2) { // If there are less than 2 characters
             rgb_matrix::DrawText(
                 off_screen_canvas, font, 5 + (offset*i), 53 + font.baseline(), temp_predicted_high_color, NULL, highTemp.c_str(), letter_spacing);
@@ -618,8 +535,12 @@ void WeatherStationModule::DrawWeatherStationCanvas(bool dateTimeOnly) {
 
 void* WeatherStationModule::Main() {
 
-    ParseWeatherCanXMLData();
-    // TODO: Handle errors
+    try {
+        ParseWeatherCanXMLData();
+    }
+    catch(const std::exception& e) {
+        MatrixModule::LogError(e.what());
+    }
 
     while (t_mod->state != EXIT) {
         // Set readable local_time from next_time.tv_sec
