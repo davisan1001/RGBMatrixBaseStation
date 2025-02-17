@@ -31,6 +31,9 @@
 const int REFRESH_RATE = 90;
 const int SLEEP = 1000000/60; // Slightly longer wait for increased stability
 
+struct timespec current_time;
+struct timespec next_time;
+
 volatile bool interrupt_received = false;
 static void InterruptHandler(int signo) { interrupt_received = true; }
 
@@ -85,19 +88,11 @@ int main(int argc, char* argv[]) {
 	// Initialize the MatrixModule objects
     t_module* t_weather_module = new t_module();
 	MatrixModule* weatherModule = new WeatherStation::WeatherStationModule(t_weather_module, matrix);
-    t_weather_module->state = ACTIVE; // TODO: Need to implement state handling. See TODO below...
+    t_weather_module->state = ACTIVE;
     
     t_module* t_clock_module = new t_module();
 	MatrixModule* clockModule = new ClockModule(t_clock_module, matrix);
-    t_clock_module->state = EXIT; // TODO: Need to implement state handling. See TODO below...
-
-	// Set up an interrupt handler to be able to stop animations while they go
-	// on. Each demo tests for while (!interrupt_received) {},
-	// so they exit as soon as they get a signal.
-	signal(SIGTERM, InterruptHandler);
-	signal(SIGINT, InterruptHandler);
-
-	printf("Press <CTRL-C> to exit and reset LEDs\n");
+    t_clock_module->state = ACTIVE;
 
     // Run the module threads
     pthread_t clockModuleThread;
@@ -105,22 +100,44 @@ int main(int argc, char* argv[]) {
     pthread_t weatherModuleThread;
     pthread_create(&weatherModuleThread, NULL, MatrixModule::Run, weatherModule);
 
+    // Setup module tracking for display
+    int currentActiveModule = 1; // 1 = Clock Module; 2 = Weather Module;
+    t_module* t_current_module = t_clock_module; // Begin with the clock module
+
+    clock_gettime(CLOCK_REALTIME, &current_time);
+    next_time.tv_sec = current_time.tv_sec + 15; // Change to the next module after 15 seconds
+
     // TODO: Find a way to succesfully suspend execution of a module when it's inactive.
     //          I think a good way to do this might be to use std::conditional_value
 
+    // TODO: Implement module INACTIVE state handling.
+
+    // Set up an interrupt handler to be able to stop animations while they go on.
+	signal(SIGTERM, InterruptHandler);
+	signal(SIGINT, InterruptHandler);
+
+	printf("Press <CTRL-C> to exit and reset LEDs\n");
+
 	// ~~~ MAIN LOOP ~~~ //
 	while (!interrupt_received) {
-        // TODO: Make state changes and switch back and forth between clock and weather module
+        clock_gettime(CLOCK_REALTIME, &current_time);
 
-        // Update the canvas only if the module has posted an update
-        if (t_clock_module->update) {
-            matrix->SwapOnVSync(t_clock_module->off_screen_canvas);
-            t_clock_module->update = false;
+        if (current_time.tv_sec >= next_time.tv_sec) {
+            if (currentActiveModule == 1) {
+                currentActiveModule = 2;
+                t_current_module = t_weather_module;
+                next_time.tv_sec = current_time.tv_sec + 45; // Change to the next module after 15 seconds
+            } else {
+                currentActiveModule = 1;
+                t_current_module = t_clock_module;
+                next_time.tv_sec = current_time.tv_sec + 15; // Change to the next module after 15 seconds
+            }
         }
-
-        if (t_weather_module->update) {
-            matrix->SwapOnVSync(t_weather_module->off_screen_canvas);
-            t_weather_module->update = false;
+        
+        // Update the canvas only if the module has posted an update
+        if (t_current_module->update) {
+            matrix->SwapOnVSync(t_current_module->off_screen_canvas);
+            t_current_module->update = false;
         }
 
         // NOTE: Without this sleep, things are rather unstable.
@@ -128,8 +145,14 @@ int main(int argc, char* argv[]) {
 	}
 	// ~~~ END ~~~ //
 
-	// TODO: Make sure you're deleting everything that needs to be deleted
-	// delete weatherModule;
+    // Set each module state to EXIT
+    t_clock_module->state = EXIT;
+    t_weather_module->state = EXIT;
+    // Wait for threads to exit.
+    pthread_join(clockModuleThread, NULL);
+    pthread_join(weatherModuleThread, NULL);
+
+	// Delete all objects initialized with 'new'
 	delete clockModule;
     delete t_clock_module;
     delete weatherModule;

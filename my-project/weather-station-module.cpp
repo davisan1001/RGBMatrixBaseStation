@@ -560,14 +560,13 @@ void* WeatherStationModule::Main() {
         // Wait to update time.
         clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
 
-        // Update the time seconds
-        next_time.tv_sec += 15;
+        // Update the time seconds (to the next whole 15 second interval)
+        next_time.tv_sec = (current_time.tv_sec / 15 + 1) * 15;
 
         // Update canvas to new time.
         t_mod->off_screen_canvas = off_screen_canvas;
         t_mod->update = true; // Set to true AFTER (to avoid RBW (Read Before Write) issues).
     }
 
-    // TODO: Need to enter
     pthread_exit(NULL);
 }
