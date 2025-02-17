@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
             if (currentActiveModule == 1) {
                 currentActiveModule = 2;
                 currentModule = weatherModule;
-                next_time.tv_sec = current_time.tv_sec + 45; // Change to the next module after 15 seconds
+                next_time.tv_sec = current_time.tv_sec + 45; // Change to the next module after 45 seconds
             } else {
                 currentActiveModule = 1;
                 currentModule = clockModule;
