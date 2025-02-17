@@ -75,8 +75,12 @@ namespace WeatherStation {
         // Everything else can use the default font
 
         // Time Variables
+        struct timespec current_time;
+        // For clock
         struct timespec next_time;
         struct tm local_time;
+        // For weather update timing
+        struct timespec next_weather_update;
 
         // TODO: There is another server that serves the same information. If this one returns an error, try again with the other one.
         // TODO: Need to handle errors... I think the weatherCAN site goes down often... It's certainly not reliable.
