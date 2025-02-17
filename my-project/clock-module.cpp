@@ -5,7 +5,7 @@
 
 // Simple analog/digital clock
 
-ClockModule::ClockModule(rgb_matrix::RGBMatrix* m) : MatrixModule(m) {
+ClockModule::ClockModule(rgb_matrix::RGBMatrix* m, bool includeDigitalClock) : MatrixModule(m) {
 	// Set text color default to white
 	text_color = rgb_matrix::Color(255, 255, 255);
 
@@ -13,7 +13,7 @@ ClockModule::ClockModule(rgb_matrix::RGBMatrix* m) : MatrixModule(m) {
 	clock_color = rgb_matrix::Color(255, 255, 255);
 
 	// Set default flag_include_digital_clock
-	flag_include_digital_clock = true;
+	flag_include_digital_clock = includeDigitalClock;
 }
 
 void ClockModule::SetCurrentNetworkTime() {
@@ -124,7 +124,6 @@ void ClockModule::DrawDigitalClock() {
 		matrix_images::digital_clock_bbox_erase_height, false);
 
 	// ~~ Draw text in the center of the screen //
-	//int local_hour = local_time.tm_hour > 12 ? local_time.tm_hour - 12 : local_time.tm_hour; // TODO: Attempted fix below
     int local_hour = (local_time.tm_hour % 12) == 0 ? 12 : (local_time.tm_hour % 12); // Convert 24 hour time to 12 hour time
 	int local_minute = local_time.tm_min;
 	std::string hours = std::to_string(local_hour);

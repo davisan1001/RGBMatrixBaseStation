@@ -1,13 +1,9 @@
 #include "weather-station-module.hpp"
 
-#include "weather-module-images.hpp"
 #include <curl/curl.h>
 #include <cmath>
-#include <stdexcept>
-#include <stdlib.h>
 #include <regex>
-#include <cctype>
-#include <array>
+#include <iostream>
 #include "pugixml.hpp"
 
 using namespace std;
@@ -219,7 +215,7 @@ void WeatherStationModule::ParseWeatherCanXMLData() {
     pugi::xml_node currentConditions = siteData.child("currentConditions");
     weather.currentConditions.tempCur = currentConditions.child("temperature").text().as_string("--");
     
-    // TODO: The below is untested
+    // TODO: The below is untested (particularly the humidex part)
     if (currentConditions.child("windChill")) { // Get windchill (if it's winter and it exists)
         weather.currentConditions.feelsLike = currentConditions.child("windChill").text().as_string("--");
     } else if (currentConditions.child("humidex")) { // Get humidex (if it's summer and it exists)
@@ -245,11 +241,12 @@ void WeatherStationModule::ParseWeatherCanXMLData() {
         weather.currentConditions.type = type;
     }
     else {
-        // If today's forecast data is already stored then keep it...
+        // If today's forecast is NOT already stored...
         if (weather.currentConditions.type == UNKNOWN) {
             // If no forecast data was gathered for today,
-            // fetch today's archived data to get this information.
-            // TODO IMPORTANT: Implement archived fetch
+            // fetch recent archived data to get this information.
+
+            // TODO: Implement archived fetch
         }
     }
 

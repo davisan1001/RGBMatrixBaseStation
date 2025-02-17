@@ -1,10 +1,7 @@
 #ifndef MATRIX_MODULE_H // include guard
 #define MATRIX_MODULE_H
 
-#include <iostream>
-#include <fstream>
-#include <ctime>
-#include <pthread.h>
+#include <string>
 
 #include "graphics.h"
 #include "led-matrix.h"
@@ -16,7 +13,7 @@ namespace Matrix {
         static int matrix_width;
         static int matrix_height;
 
-        rgb_matrix::FrameCanvas* off_screen_canvas; // TODO: Should each matrix module draw to the same off_screen_canvas? (i.e. make this static?)
+        rgb_matrix::FrameCanvas* off_screen_canvas;
 
         rgb_matrix::Font font;
 

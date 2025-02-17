@@ -1,5 +1,9 @@
 #include "matrix-module.hpp"
 
+#include <iostream>
+#include <fstream>
+#include <ctime>
+
 using namespace Matrix;
 
 int MatrixModule::matrix_width;
@@ -7,7 +11,7 @@ int MatrixModule::matrix_height;
 
 MatrixModule::MatrixModule(rgb_matrix::RGBMatrix* m) {
 	// Setup font
-	const char* bdf_font_file = "../fonts/tom-thumb_fixed_4x6.bdf"; // TODO: This should be setable for each matrix module.
+	const char* bdf_font_file = "../fonts/tom-thumb_fixed_4x6.bdf";
 
 	if (bdf_font_file == NULL) {
 		std::string errMsg = std::string("Unrecognized font file\n");

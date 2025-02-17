@@ -30,13 +30,6 @@ private:
     int circle_center_x = (matrix_width - 1) / 2;
     int circle_center_y = (matrix_height - 1) / 2;
 
-    // TODO:    The current implementation will probably cause
-    //          A problem when I stop updating this module...
-    //          The next_time.tv_sec will stop counting up and retain it's old value.
-    //          A solution to this would be to create a function that automatically
-    //          calls after the module status has been idle for a while.
-    //          In this functtion we would reset the next_time.tv_sec to time(null), just
-    //          like in the constructor.
     void SetCurrentNetworkTime();
 
     void DrawClockHourHand(double hour_fraction);
@@ -49,7 +42,7 @@ private:
     rgb_matrix::FrameCanvas* Update();
 
 public:
-    ClockModule(rgb_matrix::RGBMatrix* m);
+    ClockModule(rgb_matrix::RGBMatrix* m, bool includeDigitalClock = false);
 };
 
 #endif

@@ -5,6 +5,8 @@
 
 #include <string>
 
+#include "weather-module-images.hpp"
+
 using namespace Matrix;
 
 namespace WeatherStation {
@@ -83,7 +85,6 @@ namespace WeatherStation {
         struct timespec next_weather_update;
 
         // TODO: There is another server that serves the same information. If this one returns an error, try again with the other one.
-        // TODO: Need to handle errors... I think the weatherCAN site goes down often... It's certainly not reliable.
         std::string weatherCanadaStationCode = "s0000439";
         std::string weatherCanadaDatamartURL = "https://dd.weather.gc.ca/citypage_weather/xml/NS/" + weatherCanadaStationCode + "_e.xml";
         std::string weatherDataFile = "weatherData.xml";
@@ -95,7 +96,7 @@ namespace WeatherStation {
         // Weather Fetch Functions
         static size_t CurlWriteCallback(void* contents, size_t size, size_t nmemb, std::string* output);
         std::string FetchData(std::string& url);
-        WeatherDay FetchArchivedForecast(); // TODO: Change the working of this...
+        WeatherDay FetchArchivedForecast(); // TODO: Implement this
 
         // Weather Functions
         WeatherType extractWeatherType(int iconCode, std::string textSummary);

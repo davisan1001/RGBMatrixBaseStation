@@ -1,51 +1,17 @@
-// TODO:  I'm not sure how my program will support animations like
-//        sliding where potentially 2 MatrixModules will be displayed
-//        simultaneously for a few seconds as one slides to replace the first...
-//        Doing this may require a redesign...
-// TODO: Clean up all these includes. I don't think I need even half of what's here.
-#include <assert.h>
-#include <getopt.h>
-#include <limits.h>
-#include <math.h>
 #include <signal.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <pthread.h>
+#include <stdio.h>
+#include "led-matrix.h"
 
-#include <algorithm>
-#include <iostream>  // Need (Used for debugging)
-#include <cmath>  // Need [for angle calculations]
-#include <ctime>  // Need [for clock]
-#include <numbers>
-#include <sstream>    // Need [for string manipulation]
-#include <stdexcept>  // Need [for throwing exceptions]
-#include <string>     // Need [for strings]
-
-//#include "graphics.h"
-//#include "led-matrix.h"
-//#include "pixel-mapper.h"
-#include "matrix-module.hpp"
 #include "clock-module.hpp"
 #include "weather-station-module.hpp"
 
-const int REFRESH_RATE = 90;
-const int SLEEP = 1000000/60; // Slightly longer wait for increased stability
+#define REFRESH_RATE 90
 
 struct timespec current_time;
 struct timespec next_time;
 
 volatile bool interrupt_received = false;
 static void InterruptHandler(int signo) { interrupt_received = true; }
-
-// ~~~ BEGIN FUNCTION DEFINITIONS ~~~ //
-static int usage(const char* progname) {
-	fprintf(stderr, "usage: %s <options>\n", progname);
-	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "\t<No Options Set Yet>              : N/A\n");
-
-	rgb_matrix::PrintMatrixFlags(stderr);
-	return 1;
-}
 
 int main(int argc, char* argv[]) {
 	using namespace rgb_matrix;
@@ -75,7 +41,8 @@ int main(int argc, char* argv[]) {
 	// First things first:
 	// extract the command line flags that contain relevant matrix options.
 	if (!ParseOptionsFromFlags(&argc, &argv, &matrix_options, &runtime_opt)) {
-		return usage(argv[0]);
+        rgb_matrix::PrintMatrixFlags(stderr);
+		return 1;
 	}
 
 	// Initialize RGBMatrix
@@ -90,16 +57,13 @@ int main(int argc, char* argv[]) {
 	MatrixModule* clockModule = new ClockModule(matrix);
 
     // Setup module tracking for display
-    int currentActiveModule = 1; // 1 = Clock Module; 2 = Weather Module;
+    //  1 = Clock Module;
+    //  2 = Weather Module;
+    int currentActiveModule = 1;
     MatrixModule* currentModule = clockModule;
 
     clock_gettime(CLOCK_REALTIME, &current_time);
     next_time.tv_sec = current_time.tv_sec + 15; // Change to the next module after 15 seconds
-
-    // TODO: Find a way to succesfully suspend execution of a module when it's inactive.
-    //          I think a good way to do this might be to use std::conditional_value
-
-    // TODO: Implement module INACTIVE state handling.
 
     // Set up an interrupt handler to be able to stop animations while they go on.
 	signal(SIGTERM, InterruptHandler);
@@ -125,10 +89,6 @@ int main(int argc, char* argv[]) {
         
         // Update the canvas only if the module has posted an update
         matrix->SwapOnVSync(currentModule->Update());
-
-        // TODO: This sleep may not be needed with this new design
-        // NOTE: Without this sleep, things are rather unstable.
-        // usleep(SLEEP);
 	}
 	// ~~~ END ~~~ //
 
