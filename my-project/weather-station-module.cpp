@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <regex>
 #include <cctype>
+#include <array>
 #include "pugixml.hpp"
 
 using namespace std;
@@ -55,7 +56,6 @@ WeatherStationModule::WeatherStationModule(t_module* t_modArg, rgb_matrix::RGBMa
 
     // Setup the Weather data storage struct
     weather = Weather();
-    // TODO: Set all values to defaults
 }
 
 // Weather Functions
@@ -367,7 +367,13 @@ void WeatherStationModule::DrawSeperatorLines() {
 }
 
 void WeatherStationModule::DrawCurrentDateTime() {
-    // TODO: Blank out the datetime section by drawing in black pixel values
+    // Blank out the datetime section by drawing in black pixel values
+    std::array<uint8_t, 1728> blank_out = {0};
+    int blank_out_width = 64;
+    int blank_out_height = 9;
+    rgb_matrix::SetImage(off_screen_canvas, 0, 0, blank_out.data(),
+        blank_out_width*blank_out_height, blank_out_width, blank_out_height, false);
+    
 
     std::string month = std::to_string(local_time.tm_mon + 1);
     if (month.length() < 2) {
@@ -502,7 +508,8 @@ void WeatherStationModule::DrawPredictedDailyForecastData() {
 
         // Draw temp high
         string highTemp = std::to_string((int)std::round(stod(weather.forecast[i].tempHigh))); // Round the value first
-        if(highTemp.length() < 2) { // If there are less than 2 characters
+        highTemp += "°";
+        if(highTemp.length() < 3) { // If there are less than 2 characters (degree character takes 2 bytes)
             rgb_matrix::DrawText(
                 off_screen_canvas, font, 5 + (offset*i), 53 + font.baseline(), temp_predicted_high_color, NULL, highTemp.c_str(), letter_spacing);
         } else {
