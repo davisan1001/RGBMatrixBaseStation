@@ -569,7 +569,8 @@ void* WeatherStationModule::Main() {
         // Update the time seconds (to the next whole 15 second interval)
         next_time.tv_sec = (current_time.tv_sec / 15 + 1) * 15;
 
-        // Set update to true
+        // Update canvas to new time.
+        t_mod->off_screen_canvas = off_screen_canvas;
         t_mod->update = true; // Set to true AFTER (to avoid RBW (Read Before Write) issues).
     }
 
