@@ -509,7 +509,7 @@ void WeatherStationModule::DrawPredictedDailyForecastData() {
         // Draw temp high
         string highTemp = std::to_string((int)std::round(stod(weather.forecast[i].tempHigh))); // Round the value first
         highTemp += "°";
-        if(highTemp.length() < 3) { // If there are less than 2 characters (degree character takes 2 bytes)
+        if(highTemp.length() <= 3) { // If there are 2 characters or less (degree character takes 2 bytes)
             rgb_matrix::DrawText(
                 off_screen_canvas, font, 5 + (offset*i), 53 + font.baseline(), temp_predicted_high_color, NULL, highTemp.c_str(), letter_spacing);
         } else {
@@ -569,8 +569,7 @@ void* WeatherStationModule::Main() {
         // Update the time seconds (to the next whole 15 second interval)
         next_time.tv_sec = (current_time.tv_sec / 15 + 1) * 15;
 
-        // Update canvas to new time.
-        t_mod->off_screen_canvas = off_screen_canvas;
+        // Set update to true
         t_mod->update = true; // Set to true AFTER (to avoid RBW (Read Before Write) issues).
     }
 

@@ -16,6 +16,9 @@ ClockModule::ClockModule(t_module* t_modArg, rgb_matrix::RGBMatrix* m) : MatrixM
 	flag_include_digital_clock = true;
 
 	SetCurrentNetworkTime();
+
+    // Set the off_screen_canvas pointer
+    t_mod->off_screen_canvas = off_screen_canvas;
 }
 
 void ClockModule::SetCurrentNetworkTime() {
@@ -157,15 +160,16 @@ void *ClockModule::Main() {
         // Set readable local_time from next_time.tv_sec
         localtime_r(&next_time.tv_sec, &local_time);
 
-        // Draw the analog clock with the digital clock in the center.
-        DrawClock();
+        if (t_mod->update = false) {
+            // Draw the clock (using the local_time set from the next time).
+            DrawClock();
+        }
 
         // Wait to update time.
         clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
 
-        // Update canvas to new time.
-        t_mod->off_screen_canvas = off_screen_canvas;
-        t_mod->update = true; // Set to true AFTER (to avoid RBW (Read Before Write) issues).
+        // Set update ready to true
+        t_mod->update = true;
     }
 
 	t_mod->status = EXITED;
