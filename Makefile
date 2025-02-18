@@ -6,7 +6,7 @@ RGB_LIBRARY_NAME=rgbmatrix
 RGB_LIBRARY=$(RGB_LIBDIR)/lib$(RGB_LIBRARY_NAME).a
 
 # Variables
-MY_PROJECT=my-project
+MY_PROJECT=basestation
 
 all : $(RGB_LIBRARY)
 
