@@ -50,8 +50,10 @@ namespace WeatherStation {
         std::string hour = "--";
         std::string minute = "--";
 
-        std::string sunrise = "--:--";
-        std::string sunset = "--:--";
+        int sunriseHour = -1;
+        int sunriseMin = -1;
+        int sunsetHour = -1;
+        int sunsetMin = -1;
 
         WeatherDay currentConditions;
 
@@ -61,17 +63,26 @@ namespace WeatherStation {
     class WeatherStationModule : public MatrixModule {
     private:
         int letter_spacing = 0;
+        
+        // Colors
         rgb_matrix::Color white_color;
         rgb_matrix::Color seperator_color;
+        rgb_matrix::Color seperator_color_day;
         rgb_matrix::Color temp_cur_color;
         rgb_matrix::Color temp_high_color;
         rgb_matrix::Color windchill_color;
         rgb_matrix::Color humidex_color;
-        rgb_matrix::Color date_color;
+        rgb_matrix::Color clock_color;
+        rgb_matrix::Color date_color;  // Grey (consider changing for visibility)
+        rgb_matrix::Color date_color_day;
         rgb_matrix::Color current_weekday_color;
-        rgb_matrix::Color future_weekday_color;
-        rgb_matrix::Color temp_predicted_low_color;
-        rgb_matrix::Color temp_predicted_high_color;
+        rgb_matrix::Color current_weekday_color_day;
+        rgb_matrix::Color future_weekday_color;  // Grey (consider changing for visibility)
+        rgb_matrix::Color future_weekday_color_day;
+        rgb_matrix::Color temp_predicted_high_color;  // Grey (consider changing for visibility)
+        rgb_matrix::Color temp_predicted_high_color_day;
+        rgb_matrix::Color predicted_pop_color;  // Grey (consider changing for visibility)
+        rgb_matrix::Color predicted_pop_color_day;
 
         rgb_matrix::Font current_temp_font;
         // Everything else can use the default font
@@ -104,6 +115,7 @@ namespace WeatherStation {
 
         // Time Functions
         void SetCurrentNetworkTime();
+        bool IsDaytime();
 
         // Draw Methods
         const uint8_t* GetLargeImageByType(WeatherType type);

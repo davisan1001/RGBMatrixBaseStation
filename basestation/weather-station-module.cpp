@@ -15,20 +15,32 @@ string weatherTypeString[12] = { "SUN", "PARTLY_CLOUDY", "MOSTLY_CLOUDY", "LIGHT
 WeatherStationModule::WeatherStationModule(rgb_matrix::RGBMatrix* m) : MatrixModule(m) {
     // Setup default colors
     white_color = rgb_matrix::Color(255, 255, 255);
+
     seperator_color = rgb_matrix::Color(84, 84, 84);
+    seperator_color_day = rgb_matrix::Color(255, 255, 255);
+
     temp_cur_color = rgb_matrix::Color(255, 255, 255);
     temp_high_color = rgb_matrix::Color(255, 126, 0);
+
     windchill_color = rgb_matrix::Color(0, 183, 239);
     humidex_color = rgb_matrix::Color(255, 126, 0);
-    date_color = rgb_matrix::Color(
-        120, 120, 120);  // Grey (consider changing for visibility)
+
+    clock_color = rgb_matrix::Color(255, 255, 255);
+
+    date_color = rgb_matrix::Color(120, 120, 120);  // Grey (consider changing for visibility)
+    date_color_day = rgb_matrix::Color(255, 255, 255);
+
     current_weekday_color = rgb_matrix::Color(111, 49, 152);
-    future_weekday_color = rgb_matrix::Color(
-        120, 120, 120);  // Grey (consider changing for visibility)
-    temp_predicted_low_color = rgb_matrix::Color(
-        161, 161, 161);  // Grey (consider changing for visibility)
-    temp_predicted_high_color = rgb_matrix::Color(
-        120, 120, 120);  // Grey (consider changing for visibility);
+    current_weekday_color_day = rgb_matrix::Color(255, 255, 255);
+
+    future_weekday_color = rgb_matrix::Color(120, 120, 120);  // Grey (consider changing for visibility)
+    future_weekday_color_day = rgb_matrix::Color(255, 255, 255);
+
+    temp_predicted_high_color = rgb_matrix::Color(120, 120, 120);  // Grey (consider changing for visibility)
+    temp_predicted_high_color_day = rgb_matrix::Color(255, 255, 255);
+
+    predicted_pop_color = rgb_matrix::Color(161, 161, 161);  // Grey (consider changing for visibility)
+    predicted_pop_color_day = rgb_matrix::Color(255, 255, 255);
 
     // Setup current temp font
     const char* bdf_font_file = "../fonts/8x13_custom.bdf";
@@ -122,6 +134,13 @@ void WeatherStationModule::SetCurrentNetworkTime() {
     next_time.tv_nsec = 0;
 }
 
+bool WeatherStationModule::IsDaytime() {
+    bool afterSunrise = (weather.sunriseHour < local_time.tm_hour || (weather.sunriseHour == local_time.tm_hour && weather.sunriseMin <= local_time.tm_min));
+    bool beforeSunset = (weather.sunsetHour > local_time.tm_hour || (weather.sunsetHour == local_time.tm_hour && weather.sunsetMin >= local_time.tm_min));
+    
+    return afterSunrise && beforeSunset;
+}
+
 // Weather Fetch Functions
 // Callback function to write received data into a std::string
 size_t WeatherStationModule::CurlWriteCallback(void* contents, size_t size, size_t nmemb, std::string* output) {
@@ -197,13 +216,15 @@ void WeatherStationModule::ParseWeatherCanXMLData() {
     // Get AST sunrise & sunset info
     for (pugi::xml_node sunriseNode = siteData.child("riseSet").find_child_by_attribute("dateTime", "name", "sunrise"); sunriseNode; sunriseNode = sunriseNode.next_sibling("dateTime")) {
         if (std::string(sunriseNode.attribute("zone").value()) == std::string("AST")) {
-            weather.sunrise = std::string(sunriseNode.child("hour").text().get()) + std::string(":") + std::string(sunriseNode.child("minute").text().get());
+            weather.sunriseHour = sunriseNode.child("hour").text().as_int(-1);
+            weather.sunriseMin = sunriseNode.child("minute").text().as_int(-1);
             break;
         }
     }
     for (pugi::xml_node sunsetNode = siteData.child("riseSet").find_child_by_attribute("dateTime", "name", "sunset"); sunsetNode; sunsetNode = sunsetNode.next_sibling("dateTime")) {
         if (std::string(sunsetNode.attribute("zone").value()) == std::string("AST")) {
-            weather.sunset = std::string(sunsetNode.child("hour").text().get()) + std::string(":") + std::string(sunsetNode.child("minute").text().get());
+            weather.sunsetHour = sunsetNode.child("hour").text().as_int(-1);
+            weather.sunsetMin = sunsetNode.child("minute").text().as_int(-1);
             break;
         }
     }
@@ -357,9 +378,15 @@ const uint8_t* WeatherStationModule::GetSmallImageByType(WeatherType type) {
 }
 
 void WeatherStationModule::DrawSeperatorLines() {
-    rgb_matrix::DrawLine(off_screen_canvas, 0, 9, matrix_width, 9, seperator_color);
-    rgb_matrix::DrawLine(off_screen_canvas, 0, 36, matrix_width, 36, seperator_color);
-    rgb_matrix::DrawLine(off_screen_canvas, 47, 29, 47, 33, seperator_color);
+    if (IsDaytime()) {
+        rgb_matrix::DrawLine(off_screen_canvas, 0, 9, matrix_width, 9, seperator_color_day);
+        rgb_matrix::DrawLine(off_screen_canvas, 0, 36, matrix_width, 36, seperator_color_day);
+        rgb_matrix::DrawLine(off_screen_canvas, 47, 29, 47, 33, seperator_color_day);
+    } else {
+        rgb_matrix::DrawLine(off_screen_canvas, 0, 9, matrix_width, 9, seperator_color);
+        rgb_matrix::DrawLine(off_screen_canvas, 0, 36, matrix_width, 36, seperator_color);
+        rgb_matrix::DrawLine(off_screen_canvas, 47, 29, 47, 33, seperator_color);
+    }
     return;
 }
 
@@ -417,12 +444,22 @@ void WeatherStationModule::DrawCurrentDateTime() {
         break;
     }
 
-    rgb_matrix::DrawText(
-        off_screen_canvas, font, 2, 2 + font.baseline(), date_color, NULL, monthDayStr.c_str(), letter_spacing);
-    rgb_matrix::DrawText(
-        off_screen_canvas, font, 25, 2 + font.baseline(), white_color, NULL, hourMinStr.c_str(), letter_spacing);
-    rgb_matrix::DrawText(
-        off_screen_canvas, font, 51, 2 + font.baseline(), current_weekday_color, NULL, weekday.c_str(), letter_spacing);
+    if (IsDaytime()) {
+        rgb_matrix::DrawText(
+            off_screen_canvas, font, 2, 2 + font.baseline(), date_color_day, NULL, monthDayStr.c_str(), letter_spacing);
+        rgb_matrix::DrawText(
+            off_screen_canvas, font, 25, 2 + font.baseline(), clock_color, NULL, hourMinStr.c_str(), letter_spacing);
+        rgb_matrix::DrawText(
+            off_screen_canvas, font, 51, 2 + font.baseline(), current_weekday_color_day, NULL, weekday.c_str(), letter_spacing);
+    } else {
+        rgb_matrix::DrawText(
+            off_screen_canvas, font, 2, 2 + font.baseline(), date_color, NULL, monthDayStr.c_str(), letter_spacing);
+        rgb_matrix::DrawText(
+            off_screen_canvas, font, 25, 2 + font.baseline(), clock_color, NULL, hourMinStr.c_str(), letter_spacing);
+        rgb_matrix::DrawText(
+            off_screen_canvas, font, 51, 2 + font.baseline(), current_weekday_color, NULL, weekday.c_str(), letter_spacing);
+    }
+    
 
     return;
 }
@@ -492,8 +529,14 @@ void WeatherStationModule::DrawPredictedDailyForecastData() {
         // Draw weekday text
         std::string weekday = weather.forecast[i].day.substr(0, 2);
         std::transform(weekday.begin(), weekday.end(), weekday.begin(), ::toupper);
-        rgb_matrix::DrawText(
-            off_screen_canvas, font, 3 + (offset*i), 38 + font.baseline(), future_weekday_color, NULL, weekday.c_str(), letter_spacing);
+        if (IsDaytime()) {
+            rgb_matrix::DrawText(
+                off_screen_canvas, font, 3 + (offset*i), 38 + font.baseline(), future_weekday_color_day, NULL, weekday.c_str(), letter_spacing);
+        } else {
+            rgb_matrix::DrawText(
+                off_screen_canvas, font, 3 + (offset*i), 38 + font.baseline(), future_weekday_color, NULL, weekday.c_str(), letter_spacing);
+        }
+        
         
         // Draw weather icon
         rgb_matrix::SetImage(off_screen_canvas, 3 + (offset*i), 44,
@@ -505,19 +548,34 @@ void WeatherStationModule::DrawPredictedDailyForecastData() {
         // Draw temp high
         string highTemp = std::to_string((int)std::round(stod(weather.forecast[i].tempHigh))); // Round the value first
         highTemp += "°";
-        if(highTemp.length() <= 3) { // If there are 2 characters or less (degree character takes 2 bytes)
-            rgb_matrix::DrawText(
-                off_screen_canvas, font, 5 + (offset*i), 53 + font.baseline(), temp_predicted_high_color, NULL, highTemp.c_str(), letter_spacing);
+        if (IsDaytime()) {
+            if(highTemp.length() <= 3) { // If there are 2 characters or less (degree character takes 2 bytes)
+                rgb_matrix::DrawText(
+                    off_screen_canvas, font, 5 + (offset*i), 53 + font.baseline(), temp_predicted_high_color_day, NULL, highTemp.c_str(), letter_spacing);
+            } else {
+                rgb_matrix::DrawText(
+                    off_screen_canvas, font, 3 + (offset*i), 53 + font.baseline(), temp_predicted_high_color_day, NULL, highTemp.c_str(), letter_spacing);
+            }
         } else {
-            rgb_matrix::DrawText(
-                off_screen_canvas, font, 3 + (offset*i), 53 + font.baseline(), temp_predicted_high_color, NULL, highTemp.c_str(), letter_spacing);
+            if(highTemp.length() <= 3) { // If there are 2 characters or less (degree character takes 2 bytes)
+                rgb_matrix::DrawText(
+                    off_screen_canvas, font, 5 + (offset*i), 53 + font.baseline(), temp_predicted_high_color, NULL, highTemp.c_str(), letter_spacing);
+            } else {
+                rgb_matrix::DrawText(
+                    off_screen_canvas, font, 3 + (offset*i), 53 + font.baseline(), temp_predicted_high_color, NULL, highTemp.c_str(), letter_spacing);
+            }
         }
 
         // Draw POP (if it exists)
         if(weather.forecast[i].pop > 0) {
             string pop = std::to_string(weather.forecast[i].pop);
-            rgb_matrix::DrawText(
-                off_screen_canvas, font, 2 + (offset*i), 59 + font.baseline(), temp_predicted_high_color, NULL, string(pop + "%").c_str(), letter_spacing);
+            if (IsDaytime()) {
+                rgb_matrix::DrawText(
+                    off_screen_canvas, font, 2 + (offset*i), 59 + font.baseline(), predicted_pop_color_day, NULL, string(pop + "%").c_str(), letter_spacing);
+            } else {
+                rgb_matrix::DrawText(
+                    off_screen_canvas, font, 2 + (offset*i), 59 + font.baseline(), predicted_pop_color, NULL, string(pop + "%").c_str(), letter_spacing);
+            }
         }
     }
     
